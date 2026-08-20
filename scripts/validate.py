@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the marketplace, plugin, skills, and evaluation fixtures."""
+"""Validate the marketplace, plugins, skills, and evaluation fixtures."""
 
 from __future__ import annotations
 
@@ -11,8 +11,10 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PLUGIN = ROOT / "plugins" / "discovery"
-SKILLS = PLUGIN / "skills"
+EXPECTED_PLUGINS = {
+    "discovery": {"deep-discovery", "start-discovery"},
+    "design": {"change-design", "start-design"},
+}
 
 
 def fail(message: str) -> None:
@@ -63,8 +65,8 @@ def validate_skill(skill_dir: Path) -> None:
             fail(f"Broken skill reference: {skill_dir.name}/{relative}")
 
 
-def validate_evals(skill_name: str) -> None:
-    test_dir = ROOT / "tests" / "discovery" / skill_name
+def validate_evals(plugin_name: str, skill_name: str) -> None:
+    test_dir = ROOT / "tests" / plugin_name / skill_name
     document = read_json(test_dir / "evals.json")
     if document.get("skill_name") != skill_name:
         fail(f"Wrong skill_name in {test_dir.relative_to(ROOT)}/evals.json")
@@ -78,30 +80,33 @@ def main() -> None:
     marketplace = read_json(ROOT / ".claude-plugin" / "marketplace.json")
     if marketplace.get("name") != "greg-asher-skills":
         fail("Unexpected marketplace name")
-    if len(marketplace.get("plugins", [])) != 1:
-        fail("Marketplace must contain one discovery plugin")
+    entries = {entry.get("name"): entry for entry in marketplace.get("plugins", [])}
+    if set(entries) != set(EXPECTED_PLUGINS):
+        fail(f"Unexpected marketplace plugins: {sorted(entries)}")
 
-    entry = marketplace["plugins"][0]
-    if entry.get("name") != "discovery" or entry.get("source") != "./plugins/discovery":
-        fail("Marketplace discovery entry is invalid")
+    style_files: list[Path] = []
+    for plugin_name, expected_skills in EXPECTED_PLUGINS.items():
+        entry = entries[plugin_name]
+        if entry.get("source") != f"./plugins/{plugin_name}":
+            fail(f"Marketplace {plugin_name} entry is invalid")
 
-    manifest = read_json(PLUGIN / ".claude-plugin" / "plugin.json")
-    if manifest.get("name") != "discovery":
-        fail("Plugin manifest name must be discovery")
+        plugin = ROOT / "plugins" / plugin_name
+        skills = plugin / "skills"
+        manifest = read_json(plugin / ".claude-plugin" / "plugin.json")
+        if manifest.get("name") != plugin_name:
+            fail(f"Plugin manifest name must be {plugin_name}")
 
-    expected_skills = {"deep-discovery", "start-discovery"}
-    actual_skills = {path.name for path in SKILLS.iterdir() if path.is_dir()}
-    if actual_skills != expected_skills:
-        fail(f"Unexpected skill folders: {sorted(actual_skills)}")
+        actual_skills = {path.name for path in skills.iterdir() if path.is_dir()}
+        if actual_skills != expected_skills:
+            fail(f"Unexpected {plugin_name} skill folders: {sorted(actual_skills)}")
 
-    for skill_name in sorted(expected_skills):
-        validate_skill(SKILLS / skill_name)
-        validate_evals(skill_name)
+        for skill_name in sorted(expected_skills):
+            validate_skill(skills / skill_name)
+            validate_evals(plugin_name, skill_name)
+            style_files.append(
+                skills / skill_name / "references" / "plain-language-writing.md"
+            )
 
-    style_files = [
-        SKILLS / "deep-discovery" / "references" / "plain-language-writing.md",
-        SKILLS / "start-discovery" / "references" / "plain-language-writing.md",
-    ]
     hashes = {hashlib.sha256(path.read_bytes()).hexdigest() for path in style_files}
     if len(hashes) != 1:
         fail("Plain-language writing references differ between skills")

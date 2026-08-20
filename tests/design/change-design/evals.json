@@ -1,0 +1,30 @@
+{
+  "skill_name": "change-design",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /change-design to design how this inherited MVP should move into our standard AWS tenancy. Stay grounded in the attached application code and research current AWS capabilities when they become relevant. Do not turn this into an implementation plan.",
+      "expected_output": "Claude anchors on the runtime move and traces document processing through the API, queue, worker, store, and result retrieval before proposing an AWS design. It identifies that the in-memory store and queue do not cross the API and worker process boundary, distinguishes current behavior from README intent, and bounds the affected surface. It performs focused current AWS research based on the discovered container, asynchronous processing, persistence, secret, and DNS needs. It returns each external option to actual attachment points in the code, compares credible seams and coexistence implications, and asks the participant for tenancy or operating choices that cannot be learned from the repository. It maintains a design notebook and produces a code-aware change design rather than generic AWS guidance, a broad application audit, or a task breakdown.",
+      "files": [
+        "../../discovery/deep-discovery/fixtures/interactive-mvp/README.md",
+        "../../discovery/deep-discovery/fixtures/interactive-mvp/package.json",
+        "../../discovery/deep-discovery/fixtures/interactive-mvp/OWNERS.md",
+        "../../discovery/deep-discovery/fixtures/interactive-mvp/src/api.js",
+        "../../discovery/deep-discovery/fixtures/interactive-mvp/src/worker.js",
+        "../../discovery/deep-discovery/fixtures/interactive-mvp/src/store.js",
+        "../../discovery/deep-discovery/fixtures/interactive-mvp/infra/runtime.yaml"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Use /change-design to add reliable retry and idempotency to the attached scheduled exporter. Investigate only the affected slice, research current patterns where useful, and produce the design delta.",
+      "expected_output": "Claude starts from the scheduled export scenario and traces ingestion, checkpoint, aggregation, and output behavior in the supplied code and schema. It expands only through retry-relevant state and ownership, researches idempotency or retry approaches tied to the actual job and database, and compares seams in the existing design. It explains the proposed behavioral, state, and data delta, including duplicate-output and partial-failure behavior, without redesigning the pipeline or producing implementation tasks.",
+      "files": [
+        "../../discovery/deep-discovery/fixtures/data-pipeline/README.md",
+        "../../discovery/deep-discovery/fixtures/data-pipeline/jobs/daily_export.py",
+        "../../discovery/deep-discovery/fixtures/data-pipeline/db/schema.sql",
+        "../../discovery/deep-discovery/fixtures/data-pipeline/config/schedule.yaml"
+      ]
+    }
+  ]
+}

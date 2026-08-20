@@ -1,0 +1,21 @@
+{
+  "skill_name": "start-design",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /start-design with the attached Scout discovery brief. Begin designing the new solution with me. Use current external research when the emerging design makes it useful.",
+      "expected_output": "Claude resumes from the discovery instead of repeating it, creates a durable design notebook, and frames a small set of consequential design questions. It develops meaningfully different whole-solution directions that connect the seller experience, account and opportunity domain, Salesforce, Snowflake, third-party data, and system responsibilities. It researches current platform capabilities only when they can distinguish options, integrates findings into the next design question, and asks the participant for business or product judgment. It updates linked design views as decisions change, avoids a generic architecture checklist, and does not produce a backlog or implementation plan.",
+      "files": [
+        "scenarios/scout-greenfield-discovery.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Resume /start-design from the attached notebook. Continue from the active design frontier without restarting the solution design.",
+      "expected_output": "Claude reconstructs the existing solution directions and decisions, preserves the open identity question, and selects a next move based on its effect on the experience, domain, and integration design. It researches the named platform dependency or asks one focused participant question as appropriate, then updates every affected design view. It does not repeat settled discovery or present all design sections as a questionnaire.",
+      "files": [
+        "scenarios/scout-design-notebook.md"
+      ]
+    }
+  ]
+}

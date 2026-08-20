@@ -25,6 +25,24 @@
         "product",
         "codebase-analysis"
       ]
+    },
+    {
+      "name": "design",
+      "source": "./plugins/design",
+      "description": "Adaptive solution design for greenfield applications and code-aware changes to existing systems.",
+      "author": {
+        "name": "Greg Asher",
+        "url": "https://github.com/greg-asher"
+      },
+      "homepage": "https://github.com/greg-asher/agent-skills",
+      "repository": "https://github.com/greg-asher/agent-skills",
+      "license": "MIT",
+      "category": "productivity",
+      "tags": [
+        "solution-design",
+        "architecture",
+        "code-aware-design"
+      ]
     }
   ]
 }
