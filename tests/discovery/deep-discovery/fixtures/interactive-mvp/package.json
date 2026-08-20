@@ -1,0 +1,11 @@
+{
+  "name": "relay-lens",
+  "private": true,
+  "scripts": {
+    "api": "node src/api.js",
+    "worker": "node src/worker.js"
+  },
+  "dependencies": {
+    "express": "^5.0.0"
+  }
+}

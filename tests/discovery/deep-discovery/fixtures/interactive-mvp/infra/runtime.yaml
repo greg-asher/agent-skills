@@ -1,0 +1,14 @@
+services:
+  api:
+    command: npm run api
+    port: 3000
+  worker:
+    command: npm run worker
+dependencies:
+  queue: managed-redis
+  extraction: document-ai-provider
+external_config:
+  repository: ../platform-config/relay-lens
+  contains:
+    - dns
+    - production-secrets

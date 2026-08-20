@@ -1,0 +1,5 @@
+job: daily_usage_export
+schedule: "0 5 * * *"
+command: python -m jobs.daily_export
+owner: data-engineering
+consumer: finance

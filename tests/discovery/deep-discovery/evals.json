@@ -1,0 +1,44 @@
+{
+  "skill_name": "deep-discovery",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /deep-discovery to understand this inherited MVP. Nobody has a complete architecture document. Investigate the application as it exists today and tell me what is real, partial, unused, or missing.",
+      "expected_output": "Claude coordinates complementary scouts rather than assigning the whole repository to one agent; identifies document processing as the principal value path; traces submission through queueing, worker extraction, persistence, and retrieval; distinguishes the intended flow from the fatal cross-process storage break, partial export, and unused billing stub; follows or explicitly calls out the referenced external platform configuration; identifies ownership clues without inventing stakeholders; writes a durable current-state report; and returns a short executive synthesis with the report path. The report puts the main finding first, uses plain and direct language, explains uncommon terms, and distinguishes observed behavior from repository claims, inference, and unknowns. It places code references next to the findings they support.",
+      "files": [
+        "fixtures/interactive-mvp/README.md",
+        "fixtures/interactive-mvp/package.json",
+        "fixtures/interactive-mvp/OWNERS.md",
+        "fixtures/interactive-mvp/src/api.js",
+        "fixtures/interactive-mvp/src/worker.js",
+        "fixtures/interactive-mvp/src/store.js",
+        "fixtures/interactive-mvp/infra/runtime.yaml"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run /deep-discovery on this small internal data-processing application. It has no meaningful UI and mostly consists of scheduled jobs, schemas, and exports.",
+      "expected_output": "Claude adapts its scouts to a non-UI system; treats the schedule and incoming usage rows as triggers; traces ingestion, normalization, aggregation, and export to the finance outcome; explains the database model and checkpoint behavior; distinguishes the active daily export from the documented but absent retry dashboard; and produces both a concise session synthesis and a durable Markdown report without forcing user-interface terminology. The writing is direct, uses consistent terms, and states the effect of each important technical fact.",
+      "files": [
+        "fixtures/data-pipeline/README.md",
+        "fixtures/data-pipeline/jobs/daily_export.py",
+        "fixtures/data-pipeline/db/schema.sql",
+        "fixtures/data-pipeline/config/schedule.yaml"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Use /deep-discovery to map this inherited MVP before we decide whether to move it into our normal cloud tenancy. Focus only on understanding the application as it exists today.",
+      "expected_output": "Claude creates a clear current-state product and system model, including current runtime configuration and external boundaries, but does not recommend a destination architecture, cloud migration, redesign, implementation sequence, or remediation plan. It states facts, repository claims, inference, and unknowns at the correct level of certainty.",
+      "files": [
+        "fixtures/interactive-mvp/README.md",
+        "fixtures/interactive-mvp/package.json",
+        "fixtures/interactive-mvp/OWNERS.md",
+        "fixtures/interactive-mvp/src/api.js",
+        "fixtures/interactive-mvp/src/worker.js",
+        "fixtures/interactive-mvp/src/store.js",
+        "fixtures/interactive-mvp/infra/runtime.yaml"
+      ]
+    }
+  ]
+}

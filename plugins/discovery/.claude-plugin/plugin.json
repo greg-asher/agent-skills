@@ -1,0 +1,17 @@
+{
+  "name": "discovery",
+  "description": "Develop greenfield product ideas and investigate existing applications without mixing discovery with delivery planning.",
+  "author": {
+    "name": "Greg Asher",
+    "url": "https://github.com/greg-asher"
+  },
+  "homepage": "https://github.com/greg-asher/agent-skills",
+  "repository": "https://github.com/greg-asher/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "discovery",
+    "product-discovery",
+    "codebase-analysis",
+    "technical-onboarding"
+  ]
+}

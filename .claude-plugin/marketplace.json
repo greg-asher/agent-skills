@@ -1,0 +1,30 @@
+{
+  "name": "greg-asher-skills",
+  "owner": {
+    "name": "Greg Asher",
+    "url": "https://github.com/greg-asher"
+  },
+  "metadata": {
+    "description": "Reusable Claude Code skills from Greg Asher."
+  },
+  "plugins": [
+    {
+      "name": "discovery",
+      "source": "./plugins/discovery",
+      "description": "Conversational product discovery for greenfield ideas and deep investigation of existing applications.",
+      "author": {
+        "name": "Greg Asher",
+        "url": "https://github.com/greg-asher"
+      },
+      "homepage": "https://github.com/greg-asher/agent-skills",
+      "repository": "https://github.com/greg-asher/agent-skills",
+      "license": "MIT",
+      "category": "productivity",
+      "tags": [
+        "discovery",
+        "product",
+        "codebase-analysis"
+      ]
+    }
+  ]
+}
