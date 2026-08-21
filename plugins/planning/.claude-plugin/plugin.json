@@ -1,0 +1,17 @@
+{
+  "name": "planning",
+  "description": "Turn settled discovery and design into a canonical Product Brief and agent-ready implementation issues.",
+  "author": {
+    "name": "Greg Asher",
+    "url": "https://github.com/greg-asher"
+  },
+  "homepage": "https://github.com/greg-asher/agent-skills",
+  "repository": "https://github.com/greg-asher/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "product-briefs",
+    "cross-functional-requirements",
+    "implementation-planning",
+    "agent-ready-issues"
+  ]
+}

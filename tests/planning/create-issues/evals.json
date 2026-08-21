@@ -1,0 +1,26 @@
+{
+  "skill_name": "create-issues",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /create-issues to turn the attached delivery-ready Scout Product Brief into a small set of agent-ready implementation issues. This is a greenfield application with no source repository yet.",
+      "expected_output": "Claude uses the Product Brief as the canonical requirement and the linked Solution Design only for deeper structural context. It creates a small set of vertical issues that deliver demonstrable seller behavior, such as assigned-account access and analysis, evidence-backed brief review, and seller-controlled Salesforce save. Business process, technology, authorization, data provenance, seller responsibility, and Revenue Operations readiness stay inside the slices they enable rather than becoming separate frontend, backend, database, process, training, integration, and testing tracks. Each issue embeds its relevant requirements and settled context, preserves guarantees such as safe retry without inventing an idempotency mechanism, and has observable completion behavior and genuine prerequisites. The queue names every unblocked initial issue without inventing a serial order. Claude does not publish to a tracker, estimate work, reopen design, or create another planning artifact.",
+      "files": [
+        "scenarios/scout-product-brief.md",
+        "../create-product-brief/scenarios/scout-solution-design.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Use /create-issues to plan the attached delivery-ready reliable-export Product Brief against the current exporter implementation. Produce the durable issue set, not tracker tickets.",
+      "expected_output": "Claude treats the Product Brief as authoritative, inspects the current scheduled exporter, and splits the change into the smallest coherent delivery slices. It preserves the expand, migrate, and contract sequence where compatibility requires it while keeping product-visible run state, retry, artifact identity, operator responsibility, and checkpoint behavior together when they form one demonstrable slice. It gives duplicate prevention, partial-failure recovery, finance continuity, and operating handoff observable done conditions. It adds only real dependencies, identifies the initial frontier, avoids unrelated ingestion or aggregation work, and does not create horizontal database, backend, UI, test, documentation, or operations tickets by default.",
+      "files": [
+        "scenarios/exporter-product-brief.md",
+        "../create-product-brief/scenarios/exporter-change-design.md",
+        "../../discovery/deep-discovery/fixtures/data-pipeline/jobs/daily_export.py",
+        "../../discovery/deep-discovery/fixtures/data-pipeline/db/schema.sql",
+        "../../discovery/deep-discovery/fixtures/data-pipeline/config/schedule.yaml"
+      ]
+    }
+  ]
+}

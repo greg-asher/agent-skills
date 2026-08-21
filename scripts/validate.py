@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_PLUGINS = {
     "discovery": {"deep-discovery", "start-discovery"},
     "design": {"change-design", "start-design"},
+    "planning": {"create-issues", "create-product-brief"},
 }
 
 

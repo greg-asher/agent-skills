@@ -29,6 +29,6 @@ Result: pass.
 - Current notebook state preserved between turns.
 - Research introduced when a learned dependency could improve the next phase.
 - Research integrated into the next product question rather than presented as a detached briefing.
-- No PRD, backlog, architecture, stack, or implementation output.
+- No Product Brief, backlog, architecture, stack, or implementation output.
 
 The regulated-workflow scenario remains in the reusable evaluation set for future regression testing.

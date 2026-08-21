@@ -238,4 +238,4 @@ If the participant pauses, update the notebook and return only the current posit
 
 ## Do not cross the boundary
 
-Do not produce a PRD, roadmap, backlog, task breakdown, implementation plan, production code, or delivery workflow. Do not broaden the work into a full application redesign unless the requested change genuinely crosses the whole system.
+Do not produce a Product Brief, roadmap, backlog, task breakdown, implementation plan, production code, or delivery workflow. Do not broaden the work into a full application redesign unless the requested change genuinely crosses the whole system.

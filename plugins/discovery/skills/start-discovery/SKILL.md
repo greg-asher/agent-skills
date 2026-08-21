@@ -12,7 +12,7 @@ Treat this invocation context as a starting point:
 
 `$ARGUMENTS`
 
-Do not inspect or design source code. Keep this work separate from PRD writing, architecture selection, roadmapping, issue creation, and implementation.
+Do not inspect or design source code. Keep this work separate from Product Brief writing, architecture selection, roadmapping, issue creation, and implementation.
 
 ## Write in plain language
 
@@ -213,4 +213,4 @@ If the participant pauses before completion, update the notebook and return only
 
 ## Do not cross the boundary
 
-Do not produce a PRD, feature backlog, roadmap, project plan, target architecture, stack recommendation, implementation issues, or code. Do not recommend building merely because discovery began with an application idea. Do not claim that conversation or desk research validated a market.
+Do not produce a Product Brief, feature backlog, roadmap, project plan, target architecture, stack recommendation, implementation issues, or code. Do not recommend building merely because discovery began with an application idea. Do not claim that conversation or desk research validated a market.

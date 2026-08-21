@@ -1,0 +1,35 @@
+{
+  "skill_name": "create-product-brief",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /create-product-brief to turn the attached Scout discovery and solution design into the canonical Product Brief we will use for implementation planning.",
+      "expected_output": "Claude treats Discovery and Design as settled handoffs rather than restarting either process. It writes one coherent Product Brief with a clear seller-centered product narrative and connected Business and Process, Technology, and People requirements. It preserves the seller-controlled Salesforce workflow, evidence and authorization controls, enterprise SSO, system and data ownership, asynchronous analysis, safe Salesforce retry, Revenue Operations responsibilities, defining failure and partial-data scenarios, pilot measures, and explicit boundaries. It links the source artifacts, marks the brief ready for issue creation, does not invent numeric targets or missing implementation mechanisms, and does not create issues or a separate technical document.",
+      "files": [
+        "scenarios/scout-greenfield-discovery.md",
+        "scenarios/scout-solution-design.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Use /create-product-brief to turn this current-state discovery and settled change design into the canonical Product Brief for reliable daily exports.",
+      "expected_output": "Claude produces one Product Brief that connects the finance outcome and operating process to the settled technology change. It includes one completed export per business date, visible run states, automatic and safe manual retry, operator recovery, durable run and artifact identity, attempt and failure state, transactional checkpoint completion, lease-based claiming, and the expand, migrate, and contract compatibility path. It preserves the boundary around ingestion, normalization, aggregation, and downstream reconciliation. It marks the brief ready for issue creation and does not reduce the document to user behavior, copy the complete source reports, create implementation issues, or invent additional architecture.",
+      "files": [
+        "scenarios/exporter-deep-discovery.md",
+        "scenarios/exporter-change-design.md",
+        "../../discovery/deep-discovery/fixtures/data-pipeline/jobs/daily_export.py",
+        "../../discovery/deep-discovery/fixtures/data-pipeline/db/schema.sql"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Use /create-product-brief on the attached Scout discovery, design, and ownership notes. Preserve the current planning state even if the brief is not ready for issues.",
+      "expected_output": "Claude writes or updates a durable Product Brief but does not silently choose between the conflicting Revenue Operations and Sales Operations ownership statements. It identifies production source-quality response and source-disablement authority as a delivery-shaping People and Business and Process decision, names the affected operating and escalation requirements, marks the brief Not ready for issue creation, and does not create issues or fill the gap with a generic shared-ownership statement.",
+      "files": [
+        "scenarios/scout-greenfield-discovery.md",
+        "scenarios/scout-solution-design.md",
+        "scenarios/scout-conflicting-ownership.md"
+      ]
+    }
+  ]
+}
