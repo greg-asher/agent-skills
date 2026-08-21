@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/greg-asher/agent-skills/source-model.schema.json",
+  "title": "Discovery Source Model",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "subject",
+    "corpusType",
+    "coverage",
+    "actors",
+    "workflows",
+    "decisions",
+    "claims",
+    "conflicts",
+    "gaps",
+    "unresolvedQuestions"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "subject": {
+      "type": "object",
+      "required": ["name", "description"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "corpusType": {
+      "type": "string",
+      "enum": ["software", "document-corpus", "mixed", "sparse"]
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["reviewed", "partial", "unreadable", "excluded"],
+      "properties": {
+        "reviewed": { "type": "array", "items": { "$ref": "#/$defs/coverageItem" } },
+        "partial": { "type": "array", "items": { "$ref": "#/$defs/coverageItem" } },
+        "unreadable": { "type": "array", "items": { "$ref": "#/$defs/coverageItem" } },
+        "excluded": { "type": "array", "items": { "$ref": "#/$defs/coverageItem" } }
+      },
+      "additionalProperties": false
+    },
+    "actors": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "workflows": { "type": "array", "items": { "$ref": "#/$defs/workflow" } },
+    "businessRules": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "operatingContext": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "concepts": {
+      "type": "object",
+      "properties": {
+        "product": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+        "data": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+        "system": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+        "design": { "type": "array", "items": { "$ref": "#/$defs/finding" } }
+      },
+      "additionalProperties": false
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/finding" },
+          {
+            "type": "object",
+            "required": ["decisionState"],
+            "properties": {
+              "decisionState": {
+                "type": "string",
+                "enum": ["settled", "proposed", "superseded", "unclear"]
+              }
+            }
+          }
+        ]
+      }
+    },
+    "claims": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description", "significance", "evidence"],
+        "properties": {
+          "description": { "type": "string" },
+          "significance": { "type": "string" },
+          "evidence": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/evidence" } }
+        },
+        "additionalProperties": true
+      }
+    },
+    "gaps": { "type": "array", "items": { "$ref": "#/$defs/gap" } },
+    "unresolvedQuestions": { "type": "array", "items": { "$ref": "#/$defs/gap" } }
+  },
+  "$defs": {
+    "support": {
+      "type": "string",
+      "enum": ["source-stated", "corroborated", "participant-confirmed", "inferred", "unknown"]
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["file", "location"],
+      "properties": {
+        "file": { "type": "string" },
+        "location": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "coverageItem": {
+      "type": "object",
+      "required": ["file", "reviewState"],
+      "properties": {
+        "file": { "type": "string" },
+        "reviewState": { "type": "string", "enum": ["reviewed", "partial", "unreadable", "excluded", "duplicate"] },
+        "limitations": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "finding": {
+      "type": "object",
+      "required": ["id", "statement", "support", "evidence"],
+      "properties": {
+        "id": { "type": "string" },
+        "statement": { "type": "string" },
+        "support": { "$ref": "#/$defs/support" },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } }
+      },
+      "additionalProperties": true
+    },
+    "workflow": {
+      "allOf": [
+        { "$ref": "#/$defs/finding" },
+        {
+          "type": "object",
+          "required": ["trigger", "outcome", "steps"],
+          "properties": {
+            "trigger": { "type": "string" },
+            "outcome": { "type": "string" },
+            "steps": { "type": "array", "items": { "type": "string" } },
+            "actorIds": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      ]
+    },
+    "gap": {
+      "type": "object",
+      "required": ["description", "significance"],
+      "properties": {
+        "description": { "type": "string" },
+        "significance": { "type": "string" },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

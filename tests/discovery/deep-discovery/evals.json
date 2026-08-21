@@ -39,6 +39,43 @@
         "fixtures/interactive-mvp/src/store.js",
         "fixtures/interactive-mvp/infra/runtime.yaml"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Run /deep-discovery in this ordinary document folder. There is no repository and no application to run. Reconstruct what the material says the product and operating process are today.",
+      "expected_output": "Claude classifies the folder as a document corpus without treating absent Git history or runtime as a blocker. It inventories the presentation, PDF, spreadsheet, notes, diagram, image, and older proposal; records the bounded spreadsheet preview and any layout limits; coordinates bounded source investigators; and reconstructs the Scout product narrative, seller and operations actors, shortlist workflow, business controls, account and signal concepts, Salesforce and Snowflake dependencies, design direction, and operating responsibility. It surfaces rather than silently resolves the Lens-versus-Scout, manager-versus-seller, and direct-write-versus-review conflicts. It produces the canonical report, source guide, machine-readable source model, asset index, useful editable workflow, actor, dependency, or conflict visuals, and one discovery briefing under discovery/ because this is an ordinary folder. It does not manufacture an application model, architecture atlas, engineering onboarding guide, target design, or implementation plan.",
+      "files": [
+        "scenarios/document-corpus.md"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Use /deep-discovery on this mixed folder. Reconcile what the approved proposal says with what the application actually does.",
+      "expected_output": "Claude classifies the workspace as mixed, investigates the proposal and application as separate evidence, runs or inspects the tiny workflow, and reports that the approved proposal describes automatic threshold approval and partner submission while the implementation sends every referral to manual review and a local JSON destination. It does not privilege the approved document or the code automatically. It publishes a source model and source guide alongside the application model and compact software assets, makes the intent-versus-implementation gap central to the report, and does not redesign the system.",
+      "files": [
+        "fixtures/mixed-intent/README.md",
+        "fixtures/mixed-intent/proposal.md",
+        "fixtures/mixed-intent/src/app.js"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Run /deep-discovery on this source-code folder after it was copied out of its original repository. There is no .git directory or usable history.",
+      "expected_output": "Claude classifies the folder as software from the application-owned source, schema, and schedule rather than requiring Git. It preserves the current software workflow: source scouts plus focused code, data, build, runtime, and value-path investigation; attempts the scheduled export when feasible; creates the compatible application model, compact architecture and data-flow views, onboarding material, and briefing; and states only that history-based evolution and ownership evidence are unavailable.",
+      "files": [
+        "fixtures/data-pipeline/README.md",
+        "fixtures/data-pipeline/jobs/daily_export.py",
+        "fixtures/data-pipeline/db/schema.sql",
+        "fixtures/data-pipeline/config/schedule.yaml"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Use /deep-discovery on this procurement document corpus. One referenced source cannot be opened.",
+      "expected_output": "Claude keeps the encrypted policy visible as unreadable coverage and explains that authoritative risk tiers, thresholds, and exception ownership could not be established. It reports the Finance-versus-Procurement conflict from readable sources without guessing. The report, source guide, source model, and asset index preserve the evidence boundary; visuals and briefing include only relationships supported by readable material.",
+      "files": [
+        "scenarios/unreadable-corpus.md"
+      ]
     }
   ]
 }

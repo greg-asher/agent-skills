@@ -9,6 +9,33 @@
 - Phase: <early | middle | late>
 - Objective: <what the next conversation needs to learn>
 
+## Source State
+
+- Entry mode: <idea-led | artifact-led | resume>
+- Source currency: <when the manifest was last refreshed and what changed>
+- Manifest: <path or none>
+- Source model: <path or none>
+
+## Source Coverage
+
+### Reviewed
+
+### Partially Reviewed
+
+State the exact limit for each source.
+
+### Inaccessible
+
+Keep unreadable or unsupported material visible.
+
+## Material Findings
+
+Record only findings that shape the current discovery. Distinguish source-stated, corroborated, participant-confirmed, inferred, and unknown claims.
+
+## Source Conflicts
+
+Do not silently choose between sources. State the conflicting claims, their locations, and why the conflict matters.
+
 ## Desired Change
 
 ## Actors and Situations
@@ -42,6 +69,8 @@ Distinguish researchable facts, participant decisions, and product hypotheses.
 ## Research Queue
 
 ## Research Findings and Sources
+
+Keep external research separate from supplied source material.
 
 ## Decisions and Meaningful Changes
 

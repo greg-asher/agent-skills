@@ -32,6 +32,30 @@
       "files": [
         "scenarios/resumable-discovery.md"
       ]
+    },
+    {
+      "id": 5,
+      "prompt": "Run /start-discovery in this folder of Scout source material. Start the conversation where the material ends.",
+      "expected_output": "Claude chooses artifact-led entry, inventories the local sources before asking a question, saves the source manifest and source model under .discovery/scout/, and updates the notebook with coverage, material findings, currency, and conflicts. It treats the sponsor's Snowflake completeness and seller adoption claims as hypotheses, does not ask the participant to restate the documented workflow or named dependencies, and surfaces the unresolved system-of-record and Lens-versus-Scout conflicts. Its first response contains only a short synthesis of what the material describes, the most important gap or conflict, and one natural question the sources cannot answer. It creates no Deep Discovery report, source guide, asset index, visual, or preliminary briefing during the quick pass.",
+      "files": [
+        "scenarios/artifact-led-scout.md"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Resume /start-discovery from this notebook and refreshed folder. Continue from the current learning objective.",
+      "expected_output": "Claude compares the saved and current source manifests, identifies seller-interview.md as the only changed source, accounts for no removals, refreshes only source-model and notebook findings affected by that interview, preserves unaffected sponsor and ownership findings, and opens with a question about the newly exposed ownership handoff rather than replaying early discovery or rereading the whole corpus.",
+      "files": [
+        "scenarios/resume-source-notebook.md"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Use /start-discovery for the greenfield idea in this folder.",
+      "expected_output": "Claude inventories before conversation, detects the implemented referral-triage application from its routes, tests, package, and deployment material, and does not accept the greenfield label. Its concise opening explains that the material appears to describe a change to an existing pilot, names the boundary uncertainty, and asks whether the work is a new product or an extension of that application before continuing. It creates only the internal manifest, source model, and notebook update during intake.",
+      "files": [
+        "scenarios/implemented-app-in-folder.md"
+      ]
     }
   ]
 }
