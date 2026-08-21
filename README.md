@@ -8,8 +8,8 @@ The `discovery` plugin contains two skills:
 
 | Skill | Purpose |
 | --- | --- |
-| `/discovery:start-discovery` | Develop a greenfield product idea through context-rich interviews and focused research. Produces a living notebook, discovery brief, core value journey flowcharts, adaptive supporting visuals, and a product discovery briefing. |
-| `/discovery:deep-discovery` | Investigate an existing application through repository analysis and end-to-end workflow traces. Produces a report, evidence-linked knowledge base, AST-backed architecture atlas, onboarding material, and adaptive presentation package. |
+| `/discovery:start-discovery` | Develop a greenfield product idea through context-rich interviews, local source intake, and focused research. When meaningful material exists, it synthesizes it before asking the first unanswered question. |
+| `/discovery:deep-discovery` | Investigate software, documents, designs, data, or a mixed folder. Produces an evidence-linked knowledge base and only the report, source, architecture, onboarding, visual, and briefing assets the material supports. |
 
 Both skills are manually invoked. They keep discovery separate from Product Brief writing, target architecture, roadmaps, and implementation.
 
@@ -106,10 +106,10 @@ Start a greenfield product discovery:
 /discovery:start-discovery Explore an application that helps account teams investigate commercial whitespace.
 ```
 
-Investigate an existing application:
+Investigate an existing application or source corpus:
 
 ```text
-/discovery:deep-discovery Focus on what the application does, its main workflows, data movement, architecture, and build status.
+/discovery:deep-discovery Focus on what this material establishes about the product, its workflows, data, systems, decisions, and current state.
 ```
 
 Design a new solution from a greenfield discovery:
@@ -158,9 +158,9 @@ Arguments are optional. Each skill can establish its starting context from the c
 
 ## What the skills produce
 
-`start-discovery` maintains `.discovery/<product>/notebook.md` during the conversation. When discovery is complete, it writes a Greenfield Discovery Brief and an editable flowchart of the core value journey the product will be responsible for. It adds focused branch flows and supporting opportunity, actor, domain, dependency, or learning-priority visuals only when they improve understanding. It also creates a product discovery briefing.
+`start-discovery` maintains `.discovery/<product>/notebook.md` during the conversation. When meaningful local material exists, it also maintains a hashed source manifest and machine-readable source model there. The first pass synthesizes the material without creating a preliminary report, then opens with the first question the sources cannot answer. On resume, it reads only new and changed material. When discovery is complete, it writes a Greenfield Discovery Brief, an editable core value journey, useful supporting visuals, and a product discovery briefing.
 
-`deep-discovery` writes `docs/discovery/<application>-deep-discovery.md` and a companion asset package. It combines AST and static analysis with runtime, deployment, and value-path evidence to build a revision-scoped application model with stable IDs and a central evidence catalog. That model powers a navigable discovery knowledge base and is projected into a multi-resolution architecture atlas, onboarding guide, and discovery and onboarding presentations.
+`deep-discovery` classifies the current folder as software, a document corpus, mixed, or sparse. In repositories it defaults to `docs/discovery/`; in ordinary folders it defaults to `discovery/`. Document-only investigations produce a canonical report, source guide, source model, evidence-linked knowledge base, useful visuals, and one briefing. Software investigations preserve the revision-scoped application model, evidence catalog, AST and runtime analysis, architecture atlas, onboarding, and presentation flow. Mixed investigations reconcile documented intent with implemented behavior. Sparse folders get an honest evidence boundary instead of manufactured artifacts.
 
 The artifact packages expand and contract with the application. Small systems use combined views and a compact presentation. Large systems gain linked subsystem, flow, data, runtime, and cross-cutting views only where the overview would lose important distinctions.
 
@@ -194,6 +194,10 @@ Discover -> Design -> Plan -> Work on Issues -> Review Work
 .claude-plugin/marketplace.json       Marketplace catalog
 plugins/discovery/                    Installed Claude Code plugin
   .claude-plugin/plugin.json
+  agents/source-investigator.md
+  assets/source-model.schema.json
+  references/source-investigation.md
+  scripts/source-corpus.py
   skills/start-discovery/
   skills/deep-discovery/
 plugins/design/                       Installed Claude Code plugin
@@ -216,6 +220,7 @@ plugins/kestrel/                      Installed Claude Code plugin
   bin/kestrel-assign
   skills/assign/
 tests/discovery/                      Evaluation prompts and fixtures
+  source-corpus/                      Dependency-free corpus and OOXML extractor tests
 tests/design/                         Design evaluation prompts and scenarios
 tests/planning/                       Planning evaluation prompts and scenarios
 tests/execution/                      Execution evaluation prompts and scenarios
@@ -250,6 +255,12 @@ Test the Kestrel job wrapper without starting a live Kestrel run:
 node --test tests/kestrel/assign-script.test.mjs
 ```
 
+Test source inventory and Office extraction:
+
+```bash
+python3 -m unittest discover -s tests/discovery/source-corpus -p 'test_*.py' -v
+```
+
 Load the plugin directly during development:
 
 ```bash
@@ -262,7 +273,7 @@ claude --plugin-dir ./plugins/kestrel
 
 ## Security
 
-The plugins include no hooks, Model Context Protocol servers, or preapproved tools. Execution includes model-neutral packaged agents; the reviewer agents cannot write files. The Kestrel plugin includes one executable wrapper that invokes a locally installed `kestrel job run`. It requests a managed worktree and does not merge or publish by default. Review skill and agent instructions before installation, as you would with any agent extension.
+The plugins include no hooks, Model Context Protocol servers, or preapproved tools. Discovery includes a model-neutral source investigator and a dependency-free Office extractor that rejects unsafe archive paths and bounded-expansion limits. Execution includes model-neutral packaged agents; the reviewer agents cannot write files. The Kestrel plugin includes one executable wrapper that invokes a locally installed `kestrel job run`. It requests a managed worktree and does not merge or publish by default. Review skill and agent instructions before installation, as you would with any agent extension.
 
 ## License
 

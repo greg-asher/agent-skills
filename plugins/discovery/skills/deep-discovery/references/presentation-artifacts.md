@@ -1,11 +1,12 @@
 # Discovery and onboarding presentations
 
-Create presentations from the completed discovery report, discovery knowledge base, and architecture atlas. Do not rediscover or reinterpret the application while building slides.
+Create presentations from the completed discovery report, discovery knowledge base, and the models and visuals supported by the workspace. Do not rediscover or reinterpret the subject while building slides.
 
 ## Select the package
 
 Choose the smallest package that serves the readers:
 
+- **Document corpus:** one discovery briefing grounded in the source model and useful workflow or relationship visuals.
 - **Compact application:** one combined discovery and onboarding presentation with a technical appendix.
 - **Larger application:** one executive discovery briefing and one engineering onboarding presentation.
 - **Large or federated system:** add subsystem or cross-cutting deep-dive presentations only when the core onboarding deck cannot explain them clearly.
@@ -24,12 +25,12 @@ Use [the discovery briefing storyboard](../assets/discovery-briefing-storyboard.
 
 The briefing should help a sponsor or technical leader understand:
 
-- what the application is and why it matters
+- what the product, process, or application is and why it matters
 - who uses it and which outcomes define its value
-- how the system works at a useful level
-- what the investigation demonstrated
+- the workflows, business rules, systems, and responsibilities that shape it
+- what the sources or investigation establish
 - the findings that most change the current understanding
-- important dependencies, ownership, and unknowns
+- important decisions, conflicts, dependencies, ownership, and unknowns
 
 Keep the main deck concise. Move code detail, inventories, and secondary diagrams into an appendix only when they help discussion.
 
@@ -41,7 +42,7 @@ The onboarding presentation should help an engineer build a useful mental model 
 
 ## Preserve traceability
 
-Use only claims supported by the report and application model in the discovery knowledge base. Put code references and external sources in speaker notes or a clearly associated source block. Label observations, static findings, declared behavior, inference, and unknowns accurately.
+Use only claims supported by the report and source or application model in the discovery knowledge base. Put source locations, code references, and external sources in speaker notes or a clearly associated source block. Label source-stated claims, corroboration, participant confirmation, observations, static findings, declared behavior, inference, and unknowns accurately.
 
 ## Inspect the finished presentations
 
@@ -49,8 +50,8 @@ Render every slide. Inspect the full deck and each slide at readable size. Fix c
 
 Use one main point per slide. Shorten copy or split a slide before shrinking text. Use takeaway titles that state what the audience should understand.
 
-Store finished presentations under:
+Store finished presentations under the selected discovery output root:
 
-`docs/discovery/<application-slug>-assets/presentations/`
+`<discovery-output>/<subject-slug>-assets/presentations/`
 
 Keep temporary builders, renders, and working files outside the published asset package.

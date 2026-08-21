@@ -58,6 +58,10 @@ Cover value, usability, feasibility, viability, adaptability, operations, and ex
 
 Prioritize the few interviews, observations, data checks, dependency investigations, market tests, or technical experiments that would reduce the most consequential uncertainty.
 
-## Research Sources
+## Supplied Source Material
 
-List direct sources used in the discovery. Cite material external claims near the relevant text as well.
+List the local documents, designs, data, software, and participant-provided artifacts that materially shaped the discovery. State important coverage limits and unresolved source conflicts. Cite each material claim near the text it supports.
+
+## External Research
+
+List direct external sources used in the discovery. Cite material external claims near the relevant text as well. Do not mix supplied source material with internet research.

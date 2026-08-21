@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import os
@@ -20,6 +21,7 @@ EXPECTED_PLUGINS = {
     "kestrel": {"assign"},
 }
 EXPECTED_AGENTS = {
+    "discovery": {"source-investigator"},
     "execution": {"adversarial-reviewer", "change-reviewer", "issue-worker"},
 }
 
@@ -221,11 +223,57 @@ def main() -> None:
         for agent_name in sorted(expected_agents):
             validate_agent(agent_dir / f"{agent_name}.md")
 
+        if plugin_name == "discovery":
+            for skill_name in expected_skills:
+                skill_text = (skills / skill_name / "SKILL.md").read_text()
+                if "`source-investigator`" not in skill_text:
+                    fail(f"{skill_name} does not reference the packaged source-investigator")
+                if "../../references/source-investigation.md" not in skill_text:
+                    fail(f"{skill_name} does not reference the shared source guide")
+
     hashes = {hashlib.sha256(path.read_bytes()).hexdigest() for path in style_files}
     if len(hashes) != 1:
         fail("Plain-language writing references differ between skills")
 
     validate_discovery_contracts()
+
+    source_model = read_json(
+        ROOT / "plugins" / "discovery" / "assets" / "source-model.schema.json"
+    )
+    required_source_fields = {
+        "subject",
+        "corpusType",
+        "coverage",
+        "actors",
+        "workflows",
+        "decisions",
+        "claims",
+        "conflicts",
+        "gaps",
+        "unresolvedQuestions",
+    }
+    if not required_source_fields.issubset(set(source_model.get("required", []))):
+        fail("Discovery source-model schema is missing required evidence fields")
+
+    source_guide = ROOT / "plugins" / "discovery" / "references" / "source-investigation.md"
+    if "${CLAUDE_PLUGIN_ROOT}/scripts/source-corpus.py" not in source_guide.read_text():
+        fail("Discovery source guide does not reference the bundled corpus tool")
+
+    source_corpus = ROOT / "plugins" / "discovery" / "scripts" / "source-corpus.py"
+    if not source_corpus.is_file():
+        fail("Missing plugins/discovery/scripts/source-corpus.py")
+    if not os.access(source_corpus, os.X_OK):
+        fail("plugins/discovery/scripts/source-corpus.py must be executable")
+    try:
+        ast.parse(source_corpus.read_text(), filename=str(source_corpus))
+    except SyntaxError as error:
+        fail(f"Discovery source corpus tool has invalid Python: {error}")
+
+    source_corpus_tests = (
+        ROOT / "tests" / "discovery" / "source-corpus" / "test_source_corpus.py"
+    )
+    if not source_corpus_tests.is_file():
+        fail("Missing Discovery source corpus tests")
 
     kestrel_assign = ROOT / "plugins" / "kestrel" / "bin" / "kestrel-assign"
     if not kestrel_assign.is_file():

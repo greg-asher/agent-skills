@@ -27,9 +27,9 @@ Distinguish participant reports, external research, product hypotheses, choices,
 
 Use editable Mermaid, DOT, or another suitable source format. Render to SVG or PNG when tools are available. Inspect each published diagram and split or simplify it when labels, branches, or relationships become difficult to follow.
 
-Store visual assets under:
+Store visual assets under the selected discovery output root:
 
-`docs/discovery/<product-slug>-assets/visuals/`
+`<discovery-output>/<product-slug>-assets/visuals/`
 
 If no rendering tool is available, publish the editable source and state which rendered formats remain unavailable.
 
@@ -56,8 +56,8 @@ Use only claims supported by the brief, notebook, and cited research. Put source
 
 Render every finished slide. Inspect the deck and each slide at readable size. Fix clipped text, crowded layouts, unintended overlap, inconsistent terms, and diagrams that are illegible at presentation scale.
 
-Store the finished presentation under:
+Store the finished presentation under the selected discovery output root:
 
-`docs/discovery/<product-slug>-assets/presentations/`
+`<discovery-output>/<product-slug>-assets/presentations/`
 
 Keep temporary builders, renders, and working files outside the published asset package.
