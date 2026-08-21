@@ -1,6 +1,6 @@
 # Discovery and onboarding presentations
 
-Create presentations from the completed discovery report, application model, and architecture atlas. Do not rediscover or reinterpret the application while building slides.
+Create presentations from the completed discovery report, discovery knowledge base, and architecture atlas. Do not rediscover or reinterpret the application while building slides.
 
 ## Select the package
 
@@ -41,7 +41,7 @@ The onboarding presentation should help an engineer build a useful mental model 
 
 ## Preserve traceability
 
-Use only claims supported by the report and application model. Put code references and external sources in speaker notes or a clearly associated source block. Label observations, static findings, declared behavior, inference, and unknowns accurately.
+Use only claims supported by the report and application model in the discovery knowledge base. Put code references and external sources in speaker notes or a clearly associated source block. Label observations, static findings, declared behavior, inference, and unknowns accurately.
 
 ## Inspect the finished presentations
 

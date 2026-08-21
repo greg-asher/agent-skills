@@ -1,6 +1,6 @@
 ---
 name: deep-discovery
-description: Deeply investigate an existing software application or unfamiliar codebase using coordinated subagents, end-to-end workflow tracing, AST-backed architecture modeling, adaptive diagrams, and discovery and onboarding presentations. Use for application discovery, technical onboarding, inherited systems, MVP handoffs, architecture reconstruction, or requests to understand what a repository does, how it works, how data moves, and what state the build is in.
+description: Deeply investigate an existing software application or unfamiliar codebase using coordinated subagents, end-to-end workflow tracing, AST-backed architecture modeling, an evidence-linked knowledge base, adaptive diagrams, and discovery and onboarding presentations. Use for application discovery, technical onboarding, inherited systems, MVP handoffs, architecture reconstruction, or requests to understand what a repository does, how it works, how data moves, and what state the build is in.
 disable-model-invocation: true
 ---
 
@@ -18,7 +18,7 @@ Keep this discovery separate from migration planning, target architecture, redes
 
 ## Write in plain language
 
-Read [the plain-language writing guide](references/plain-language-writing.md) before you write the report, atlas, presentations, onboarding material, or final session synthesis. Apply its core rules to all prose. Apply its technical rules when you explain the system or give navigation instructions. Apply its editorial rules when you report findings, evidence, significance, or uncertainty.
+Read [the plain-language writing guide](references/plain-language-writing.md) before you write the report, knowledge-base pages, atlas, presentations, onboarding material, or final session synthesis. Apply its core rules to all prose. Apply its technical rules when you explain the system or give navigation instructions. Apply its editorial rules when you report findings, evidence, significance, or uncertainty.
 
 In every response and artifact:
 
@@ -95,6 +95,8 @@ Read [the adaptive architecture guide](references/architecture-artifacts.md). Co
 
 Use AST-capable tooling supported by the repository or environment to establish useful source relationships. Analyze application-owned source, not generated files or dependency internals. Capture modules, symbols, imports, calls, routes, events, data access, interfaces, and extension points only when they explain the application or a primary value path.
 
+Build the model as the investigation proceeds. Use stable IDs for capabilities, nodes, relationships, flows, evidence, findings, and unknowns. Record evidence once in the central evidence catalog and refer to it by ID from supported claims. Preserve repository revisions, analysis methods, source locations, exclusions, parse failures, and coverage limits. Do not wait until the end to recreate evidence from memory.
+
 Build one connected explanation of:
 
 - the product and its users
@@ -109,7 +111,7 @@ Build one connected explanation of:
 
 Resolve different descriptions of the same behavior into one shared vocabulary.
 
-Do not treat the AST as the architecture. Reconcile static relationships with processes, deployment units, configuration, tests, integrations, and primary application flows. Distinguish observed, tested, statically established, declared, inferred, and unknown relationships.
+Do not treat the AST as the architecture. Reconcile static relationships with processes, deployment units, configuration, tests, integrations, and primary application flows. Distinguish observed, tested, statically established, declared, inferred, and unknown relationships. A static import or call edge is one fact in the model, not proof that a capability works or runs in a particular environment.
 
 Partition a large model using runtime, domain, ownership, contract, value-path, and package boundaries. Keep a top-level application view and add focused subsystem views only where the overview loses meaningful distinctions.
 
@@ -147,11 +149,13 @@ Prioritize questions within each group. Leave future product decisions, remediat
 
 ## 7. Build the discovery package
 
-Create an adaptive package from the application model. The package should become deeper only when the application and audience require it.
+Create an adaptive package from the application model. Treat the model and its evidence catalog as the canonical knowledge layer. Derive the report, atlas, onboarding material, and presentations from that layer so the package does not contain competing accounts of the application. The package should become deeper only when the application and audience require it.
 
 Always produce:
 
 - the canonical Markdown discovery report
+- a navigable, evidence-linked discovery knowledge base
+- a machine-readable application model and human-readable evidence catalog
 - an asset index that explains the package and intended readers
 - a navigable architecture atlas
 - editable source for every published diagram
@@ -162,7 +166,25 @@ For a compact application, combine related diagrams and use one discovery-and-on
 
 Do not create diagrams or decks merely to increase the artifact count.
 
-Write `docs/discovery/<application-slug>-assets/index.md` as the entry point. Link the canonical report, architecture atlas, onboarding guide, presentations, and focused deep dives. Explain which artifact answers which reader question.
+Write `docs/discovery/<application-slug>-assets/index.md` as the package entry point. Link the canonical report, discovery knowledge base, architecture atlas, onboarding guide, presentations, and focused deep dives. Explain which artifact answers which reader question.
+
+### Create the discovery knowledge base
+
+Write the canonical knowledge layer under:
+
+`docs/discovery/<application-slug>-assets/knowledge-base/`
+
+Always create:
+
+- `index.md` using [the knowledge-base template](assets/knowledge-base-template.md)
+- `application-model.json` using [the application model schema](assets/application-model.schema.json)
+- `evidence-catalog.md` using [the evidence catalog template](assets/evidence-catalog-template.md), organized by evidence type and linked to stable evidence IDs
+
+Make the index useful to product, engineering, operations, and future agents. Lead with the application's outcomes, defining value paths, capability state, major boundaries, consequential findings, and the best places to enter the evidence. Include the repository revision and investigation scope so readers know which system state the knowledge describes.
+
+Add focused Markdown pages for capabilities, value paths, runtime units, data, integrations, domain vocabulary, code navigation, or operations only when a single index would become dense. A focused page must link back to its parent topic and reuse model IDs, terms, statuses, and evidence IDs. Do not duplicate prose merely to create more pages.
+
+The JSON model is the machine-readable source for entities and traceability. The Markdown pages are the human navigation layer. Update the model before regenerating a derived page or diagram when the understanding changes. Check that every consequential claim has direct evidence or is labeled inferred or unknown; every referenced ID resolves; every flow step resolves to modeled nodes when applicable; and every published asset records which model entries it derives from.
 
 ### Write the canonical report
 
@@ -198,13 +220,13 @@ Use this structure:
 
 Make the Executive Summary stand alone. State what the application is, the user outcome it creates, the broad system shape, what the investigation demonstrated, and the most important current-state findings. Leave detailed timings, limits, component catalogs, and secondary observations in the report body.
 
-Embed or link only the atlas views that materially improve the report. Distinguish shared implementation from shared runtime infrastructure. Show separate process or service instances when the same code runs in several places. Do not use one shared node when it could imply one global service, database, or process.
+Embed or link only the knowledge-base and atlas views that materially improve the report. Distinguish shared implementation from shared runtime infrastructure. Show separate process or service instances when the same code runs in several places. Do not use one shared node when it could imply one global service, database, or process.
 
 Cite useful code locations so another engineer can move from the report into the application. Include owners, maintainers, users, environments, and operating duties only when the evidence identifies them. State what remains unknown.
 
 ### Create the architecture atlas
 
-Follow [the adaptive architecture guide](references/architecture-artifacts.md). Write the application model, atlas index, diagram sources, and rendered diagrams under:
+Follow [the adaptive architecture guide](references/architecture-artifacts.md). Read the canonical application model from the knowledge base. Write the atlas index, diagram sources, and rendered diagrams under:
 
 `docs/discovery/<application-slug>-assets/architecture/`
 
@@ -216,7 +238,7 @@ Render and inspect every published diagram. If rendering is unavailable, publish
 
 ### Create onboarding material and presentations
 
-Write `docs/discovery/<application-slug>-assets/onboarding-guide.md` using [the onboarding guide template](assets/onboarding-guide-template.md). Treat the template as a learning progression, not a mandatory section list. Link to the report, atlas, code entry points, and supported build or run paths. Adapt its depth by subsystem and reader need.
+Write `docs/discovery/<application-slug>-assets/onboarding-guide.md` using [the onboarding guide template](assets/onboarding-guide-template.md). Treat the template as a learning progression, not a mandatory section list. Link to the report, knowledge base, atlas, code entry points, and supported build or run paths. Adapt its depth by subsystem and reader need.
 
 Then read [the presentation guide](references/presentation-artifacts.md). Create either:
 
@@ -225,7 +247,7 @@ Then read [the presentation guide](references/presentation-artifacts.md). Create
 
 Add focused deep-dive presentations only when the core onboarding presentation cannot explain a complex subsystem or cross-cutting concern at readable density.
 
-Use a current supplied or repository presentation template when one is clearly intended. Otherwise use a neutral 16:9 enterprise style. Use only claims supported by the report and application model. Put code references and external sources in speaker notes or associated source blocks.
+Use a current supplied or repository presentation template when one is clearly intended. Otherwise use a neutral 16:9 enterprise style. Use only claims supported by the report and application model in the discovery knowledge base. Put code references and external sources in speaker notes or associated source blocks.
 
 Render and inspect every finished slide. If PowerPoint authoring is unavailable, create complete `.slides.md` storyboards, state the exact blocker, and do not claim that `.pptx` files exist.
 
@@ -236,6 +258,6 @@ Finish the session with a concise executive synthesis covering:
 - the workflows that define it
 - how the system works at a high level
 - the most important current-state observations
-- the durable report, atlas, onboarding, and presentation paths
+- the durable report, knowledge-base, atlas, onboarding, and presentation paths
 
 Keep the session synthesis short. Put the detail in the durable package.

@@ -2,30 +2,34 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/greg-asher/agent-skills/application-model.schema.json",
   "title": "Deep Discovery Application Model",
+  "description": "The evidence-backed, machine-readable core of a deep-discovery knowledge base.",
   "type": "object",
   "required": [
     "schemaVersion",
+    "generatedAt",
     "application",
     "scope",
+    "analysis",
+    "capabilities",
     "nodes",
     "relationships",
     "flows",
+    "evidence",
+    "findings",
     "unknowns"
   ],
   "properties": {
-    "schemaVersion": {
-      "type": "string"
-    },
+    "schemaVersion": { "const": "2.0.0" },
+    "generatedAt": { "type": "string", "format": "date-time" },
     "application": {
       "type": "object",
-      "required": ["name", "description"],
+      "required": ["name", "description", "outcomes"],
       "properties": {
-        "name": { "type": "string" },
-        "description": { "type": "string" },
-        "users": {
-          "type": "array",
-          "items": { "type": "string" }
-        }
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "users": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "outcomes": { "type": "array", "items": { "type": "string" }, "minItems": 1, "uniqueItems": true },
+        "domainTerms": { "type": "array", "items": { "$ref": "#/$defs/domainTerm" } }
       },
       "additionalProperties": true
     },
@@ -33,84 +37,70 @@
       "type": "object",
       "required": ["included", "excluded"],
       "properties": {
-        "included": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
-        "excluded": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
-        "unavailable": {
-          "type": "array",
-          "items": { "type": "string" }
-        }
+        "included": { "type": "array", "items": { "type": "string" }, "minItems": 1, "uniqueItems": true },
+        "excluded": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "unavailable": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "revisions": { "type": "array", "items": { "$ref": "#/$defs/revision" } }
       },
       "additionalProperties": true
     },
     "analysis": {
       "type": "object",
+      "required": ["methods", "sourceRoots", "excludedPaths", "coverageLimits"],
       "properties": {
-        "tools": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
-        "sourceRoots": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
-        "excludedPaths": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
-        "parseFailures": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
-        "coverageLimits": {
-          "type": "array",
-          "items": { "type": "string" }
-        }
+        "languages": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "methods": { "type": "array", "items": { "$ref": "#/$defs/analysisMethod" }, "minItems": 1 },
+        "sourceRoots": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "excludedPaths": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "parseFailures": { "type": "array", "items": { "$ref": "#/$defs/parseFailure" } },
+        "coverageLimits": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
       },
       "additionalProperties": true
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "description", "status", "evidenceIds"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "status": { "$ref": "#/$defs/capabilityStatus" },
+          "actorIds": { "$ref": "#/$defs/idList" },
+          "nodeIds": { "$ref": "#/$defs/idList" },
+          "flowIds": { "$ref": "#/$defs/idList" },
+          "evidenceIds": { "$ref": "#/$defs/idList" }
+        },
+        "additionalProperties": true
+      }
     },
     "nodes": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "name", "kind", "description", "support"],
+        "required": ["id", "name", "kind", "description", "support", "evidenceIds"],
         "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
+          "id": { "$ref": "#/$defs/id" },
+          "name": { "type": "string", "minLength": 1 },
+          "qualifiedName": { "type": ["string", "null"] },
           "kind": {
             "type": "string",
             "enum": [
-              "actor",
-              "application",
-              "repository",
-              "subsystem",
-              "service",
-              "process",
-              "job",
-              "module",
-              "interface",
-              "data-store",
-              "queue",
-              "external-system",
-              "data-entity",
-              "environment",
-              "other"
+              "actor", "application", "repository", "subsystem", "service", "process", "job",
+              "module", "symbol", "interface", "route", "command", "event", "contract",
+              "configuration", "data-store", "queue", "external-system", "data-entity",
+              "environment", "other"
             ]
           },
-          "description": { "type": "string" },
-          "status": { "type": "string" },
+          "description": { "type": "string", "minLength": 1 },
+          "status": { "$ref": "#/$defs/capabilityStatus" },
           "owner": { "type": ["string", "null"] },
-          "parentId": { "type": ["string", "null"] },
+          "parentId": { "anyOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
           "support": { "$ref": "#/$defs/support" },
-          "evidence": {
-            "type": "array",
-            "items": { "$ref": "#/$defs/evidence" }
-          }
+          "evidenceIds": { "$ref": "#/$defs/idList" },
+          "sourceLocations": { "type": "array", "items": { "$ref": "#/$defs/sourceLocation" } },
+          "tags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
         },
         "additionalProperties": true
       }
@@ -119,19 +109,17 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "source", "target", "kind", "support"],
+        "required": ["id", "source", "target", "kind", "support", "evidenceIds"],
         "properties": {
-          "id": { "type": "string" },
-          "source": { "type": "string" },
-          "target": { "type": "string" },
-          "kind": { "type": "string" },
+          "id": { "$ref": "#/$defs/id" },
+          "source": { "$ref": "#/$defs/id" },
+          "target": { "$ref": "#/$defs/id" },
+          "kind": { "type": "string", "minLength": 1 },
           "label": { "type": "string" },
-          "direction": { "type": "string" },
+          "direction": { "type": "string", "enum": ["directed", "bidirectional", "undirected"] },
           "support": { "$ref": "#/$defs/support" },
-          "evidence": {
-            "type": "array",
-            "items": { "$ref": "#/$defs/evidence" }
-          }
+          "evidenceIds": { "$ref": "#/$defs/idList" },
+          "conditions": { "type": "array", "items": { "type": "string" } }
         },
         "additionalProperties": true
       }
@@ -140,35 +128,46 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "name", "trigger", "outcome", "steps"],
+        "required": ["id", "name", "description", "trigger", "outcome", "status", "steps", "evidenceIds"],
         "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
-          "actor": { "type": ["string", "null"] },
-          "trigger": { "type": "string" },
-          "outcome": { "type": "string" },
-          "status": { "type": "string" },
+          "id": { "$ref": "#/$defs/id" },
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "actorIds": { "$ref": "#/$defs/idList" },
+          "trigger": { "type": "string", "minLength": 1 },
+          "outcome": { "type": "string", "minLength": 1 },
+          "status": { "$ref": "#/$defs/capabilityStatus" },
+          "evidenceIds": { "$ref": "#/$defs/idList" },
           "steps": {
             "type": "array",
+            "minItems": 1,
             "items": {
               "type": "object",
-              "required": ["order", "nodeId", "action"],
+              "required": ["id", "order", "action", "support", "evidenceIds"],
               "properties": {
+                "id": { "$ref": "#/$defs/id" },
                 "order": { "type": "integer", "minimum": 1 },
-                "nodeId": { "type": "string" },
-                "action": { "type": "string" },
+                "nodeIds": { "$ref": "#/$defs/idList" },
+                "action": { "type": "string", "minLength": 1 },
+                "stateChange": { "type": ["string", "null"] },
                 "support": { "$ref": "#/$defs/support" },
-                "evidence": {
-                  "type": "array",
-                  "items": { "$ref": "#/$defs/evidence" }
-                }
+                "evidenceIds": { "$ref": "#/$defs/idList" }
               },
               "additionalProperties": true
             }
           },
           "branches": {
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "object",
+              "required": ["condition", "description"],
+              "properties": {
+                "condition": { "type": "string" },
+                "description": { "type": "string" },
+                "stepIds": { "$ref": "#/$defs/idList" }
+              },
+              "additionalProperties": true
+            }
           }
         },
         "additionalProperties": true
@@ -180,14 +179,52 @@
         "type": "object",
         "required": ["id", "name", "basis", "nodeIds"],
         "properties": {
-          "id": { "type": "string" },
+          "id": { "$ref": "#/$defs/id" },
           "name": { "type": "string" },
-          "basis": { "type": "string" },
-          "parentId": { "type": ["string", "null"] },
-          "nodeIds": {
-            "type": "array",
-            "items": { "type": "string" }
-          }
+          "basis": { "type": "string", "enum": ["runtime", "domain", "ownership", "contract", "value-path", "package", "structural"] },
+          "parentId": { "anyOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+          "nodeIds": { "$ref": "#/$defs/idList" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "source", "description", "support"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "type": {
+            "type": "string",
+            "enum": ["runtime-observation", "test-result", "source-analysis", "configuration", "documentation", "repository-history", "external-source", "participant-report", "other"]
+          },
+          "source": { "type": "string", "minLength": 1 },
+          "location": { "$ref": "#/$defs/sourceLocation" },
+          "description": { "type": "string", "minLength": 1 },
+          "support": { "$ref": "#/$defs/support" },
+          "capturedAt": { "type": ["string", "null"], "format": "date-time" },
+          "methodId": { "anyOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }] },
+          "command": { "type": ["string", "null"] },
+          "result": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "summary", "significance", "priority", "support", "evidenceIds"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "summary": { "type": "string", "minLength": 1 },
+          "significance": { "type": "string", "minLength": 1 },
+          "category": { "type": "string" },
+          "priority": { "type": "string", "enum": ["high", "medium", "low"] },
+          "support": { "$ref": "#/$defs/support" },
+          "evidenceIds": { "$ref": "#/$defs/idList" },
+          "relatedIds": { "$ref": "#/$defs/idList" }
         },
         "additionalProperties": true
       }
@@ -196,38 +233,98 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["question", "significance"],
+        "required": ["id", "category", "priority", "question", "significance"],
         "properties": {
-          "question": { "type": "string" },
-          "significance": { "type": "string" },
-          "relatedNodeIds": {
-            "type": "array",
-            "items": { "type": "string" }
-          }
+          "id": { "$ref": "#/$defs/id" },
+          "category": { "type": "string", "enum": ["evidence-gap", "repository-conflict", "ownership", "outside-boundary"] },
+          "priority": { "type": "string", "enum": ["high", "medium", "low"] },
+          "question": { "type": "string", "minLength": 1 },
+          "significance": { "type": "string", "minLength": 1 },
+          "nextEvidence": { "type": ["string", "null"] },
+          "relatedIds": { "$ref": "#/$defs/idList" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "path", "description"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "type": { "type": "string" },
+          "path": { "type": "string" },
+          "description": { "type": "string" },
+          "derivedFromIds": { "$ref": "#/$defs/idList" }
         },
         "additionalProperties": true
       }
     }
   },
   "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9._:-]*$" },
+    "idList": { "type": "array", "items": { "$ref": "#/$defs/id" }, "uniqueItems": true },
     "support": {
       "type": "string",
-      "enum": [
-        "observed-runtime",
-        "demonstrated-test",
-        "static-analysis",
-        "declared",
-        "inferred",
-        "unknown"
-      ]
+      "enum": ["observed-runtime", "demonstrated-test", "static-analysis", "declared", "inferred", "unknown"]
     },
-    "evidence": {
-      "type": "object",
-      "required": ["source", "description"],
+    "capabilityStatus": {
+      "type": "string",
+      "enum": ["observed-working", "demonstrated-by-test", "implemented-and-connected", "declared-operational", "partial", "stubbed-or-mocked", "documented-but-not-found", "outside-boundary", "unknown"]
+    },
+    "sourceLocation": {
+      "type": ["object", "null"],
       "properties": {
-        "source": { "type": "string" },
-        "location": { "type": ["string", "null"] },
-        "description": { "type": "string" }
+        "path": { "type": "string" },
+        "line": { "type": ["integer", "null"], "minimum": 1 },
+        "endLine": { "type": ["integer", "null"], "minimum": 1 },
+        "url": { "type": ["string", "null"] },
+        "revision": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "revision": {
+      "type": "object",
+      "required": ["repository", "revision"],
+      "properties": {
+        "repository": { "type": "string" },
+        "revision": { "type": "string" },
+        "dirty": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "analysisMethod": {
+      "type": "object",
+      "required": ["id", "tool", "purpose"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "tool": { "type": "string" },
+        "version": { "type": ["string", "null"] },
+        "purpose": { "type": "string" },
+        "languages": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "coverage": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "parseFailure": {
+      "type": "object",
+      "required": ["path", "reason"],
+      "properties": {
+        "path": { "type": "string" },
+        "reason": { "type": "string" },
+        "methodId": { "$ref": "#/$defs/id" }
+      },
+      "additionalProperties": true
+    },
+    "domainTerm": {
+      "type": "object",
+      "required": ["term", "definition"],
+      "properties": {
+        "term": { "type": "string" },
+        "definition": { "type": "string" },
+        "aliases": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "evidenceIds": { "$ref": "#/$defs/idList" }
       },
       "additionalProperties": true
     }

@@ -2,7 +2,7 @@
 
 ## Start Here
 
-Explain what the application does, who uses it, and which value paths organize the guide. Link the canonical discovery report and architecture atlas.
+Explain what the application does, who uses it, and which value paths organize the guide. Link the canonical discovery report, discovery knowledge base, and architecture atlas.
 
 ## Product and Domain Orientation
 
@@ -18,7 +18,7 @@ Explain how repositories, modules, processes, services, jobs, stores, queues, pr
 
 ## Codebase Navigation
 
-Organize useful entry points by product behavior and subsystem. Give a reading path that moves from a primary flow into its supporting modules, data, contracts, and tests.
+Organize useful entry points by product behavior and subsystem. Give a reading path that moves from a primary flow into its supporting modules, data, contracts, and tests. Reuse stable model IDs so a reader can move into `knowledge-base/application-model.json` and its evidence catalog.
 
 ## Data and State
 

@@ -8,8 +8,8 @@ The `discovery` plugin contains two skills:
 
 | Skill | Purpose |
 | --- | --- |
-| `/discovery:start-discovery` | Develop a greenfield product idea through guided conversation and focused research. Produces a living notebook, discovery brief, core value journey flowcharts, adaptive supporting visuals, and a product discovery briefing. |
-| `/discovery:deep-discovery` | Investigate an existing application through repository analysis and end-to-end workflow traces. Produces a report, AST-backed architecture atlas, onboarding material, and adaptive presentation package. |
+| `/discovery:start-discovery` | Develop a greenfield product idea through context-rich interviews and focused research. Produces a living notebook, discovery brief, core value journey flowcharts, adaptive supporting visuals, and a product discovery briefing. |
+| `/discovery:deep-discovery` | Investigate an existing application through repository analysis and end-to-end workflow traces. Produces a report, evidence-linked knowledge base, AST-backed architecture atlas, onboarding material, and adaptive presentation package. |
 
 Both skills are manually invoked. They keep discovery separate from Product Brief writing, target architecture, roadmaps, and implementation.
 
@@ -160,7 +160,7 @@ Arguments are optional. Each skill can establish its starting context from the c
 
 `start-discovery` maintains `.discovery/<product>/notebook.md` during the conversation. When discovery is complete, it writes a Greenfield Discovery Brief and an editable flowchart of the core value journey the product will be responsible for. It adds focused branch flows and supporting opportunity, actor, domain, dependency, or learning-priority visuals only when they improve understanding. It also creates a product discovery briefing.
 
-`deep-discovery` writes `docs/discovery/<application>-deep-discovery.md` and a companion asset package. It combines AST and static analysis with runtime, deployment, and value-path evidence to build an application model. It then projects that model into a multi-resolution architecture atlas, onboarding guide, and discovery and onboarding presentations.
+`deep-discovery` writes `docs/discovery/<application>-deep-discovery.md` and a companion asset package. It combines AST and static analysis with runtime, deployment, and value-path evidence to build a revision-scoped application model with stable IDs and a central evidence catalog. That model powers a navigable discovery knowledge base and is projected into a multi-resolution architecture atlas, onboarding guide, and discovery and onboarding presentations.
 
 The artifact packages expand and contract with the application. Small systems use combined views and a compact presentation. Large systems gain linked subsystem, flow, data, runtime, and cross-cutting views only where the overview would lose important distinctions.
 

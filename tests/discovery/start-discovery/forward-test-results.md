@@ -1,6 +1,6 @@
 # Forward-Test Results
 
-Tested with fresh agents in isolated workspaces on 2026-08-20.
+Baseline tested with fresh agents in isolated workspaces on 2026-08-20.
 
 These results cover the conversational discovery workflow before adaptive visual and presentation packaging was added. The later packaging changes are covered by the updated evaluation scenarios and repository and Claude plugin validation. No additional subagent forward tests were run for that change.
 
@@ -24,7 +24,7 @@ The agent reconstructed the supplied middle-discovery position and did not repea
 
 Result: pass.
 
-## Observed package behavior
+## Observed baseline behavior
 
 - One meaningful question or tightly related pair per turn.
 - Concrete stories before abstractions.
@@ -34,3 +34,7 @@ Result: pass.
 - No Product Brief, backlog, architecture, stack, or implementation output.
 
 The regulated-workflow scenario remains in the reusable evaluation set for future regression testing.
+
+## Revised interview target
+
+On 2026-08-21, the interaction policy changed from single-question turns to context-rich interview turns designed for free-form and voice responses. Each turn now frames one learning objective, gives a short playback, offers a broad invitation plus a few related optional prompts, and makes clear that the participant may answer selectively, correct the framing, or follow the most useful thread. The updated evaluation expectations cover this behavior. Fresh-agent forward testing remains to be run.
