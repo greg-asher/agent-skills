@@ -1,0 +1,17 @@
+{
+  "name": "kestrel",
+  "description": "Assign implementation work to Kestrel for autonomous completion in a managed worktree.",
+  "author": {
+    "name": "Greg Asher",
+    "url": "https://github.com/greg-asher"
+  },
+  "homepage": "https://github.com/greg-asher/agent-skills",
+  "repository": "https://github.com/greg-asher/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "kestrel",
+    "delegation",
+    "autonomous-development",
+    "managed-worktrees"
+  ]
+}

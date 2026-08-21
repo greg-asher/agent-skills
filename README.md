@@ -1,6 +1,6 @@
 # Agent Skills
 
-Reusable Claude Code skills for discovery, solution design, implementation planning, coordinated execution, and independent review.
+Reusable Claude Code skills for discovery, solution design, implementation planning, coordinated execution, independent review, and Kestrel delegation.
 
 ## Discovery plugin
 
@@ -46,6 +46,18 @@ The `execution` plugin contains two skills and three model-neutral agents:
 
 Execution uses the tracker supplied for the invocation or Planning's local implementation queue. The active Claude Code model orchestrates the work, and packaged agents inherit that model.
 
+## Kestrel plugin
+
+The `kestrel` plugin contains one skill:
+
+| Skill | Purpose |
+| --- | --- |
+| `/kestrel:assign` | Assign a bounded repository task to Kestrel for autonomous implementation and validation in an isolated managed worktree. |
+
+The skill accepts an implementation issue or a direct task. It submits Kestrel's supported job contract, waits for a terminal result, and returns the result with durable run and replay details.
+
+It requires a locally installed Kestrel CLI with `kestrel job run` support.
+
 ## Install in Claude Code
 
 Add this repository as a marketplace:
@@ -76,6 +88,12 @@ Install the execution plugin:
 
 ```text
 /plugin install execution@greg-asher-skills
+```
+
+Install the Kestrel plugin:
+
+```text
+/plugin install kestrel@greg-asher-skills
 ```
 
 The plugins use Git commit versions. Updating the marketplace and a plugin picks up the latest published commit.
@@ -130,6 +148,12 @@ Review the implemented wave:
 /execution:review-work Review every Implemented issue that has not reached Done.
 ```
 
+Assign one of those issues to Kestrel:
+
+```text
+/kestrel:assign Complete docs/planning/scout/issues/02-qualify-opportunity.md
+```
+
 Arguments are optional. Each skill can establish its starting context from the current session and workspace.
 
 ## What the skills produce
@@ -162,6 +186,8 @@ Discover -> Design -> Plan -> Work on Issues -> Review Work
                                       |--- defects ---|
 ```
 
+`kestrel:assign` writes the submitted job input and Kestrel's durable output under the plugin data directory. Kestrel implements and validates the task in a session-isolated managed worktree; the skill reports the terminal result, identifiers, artifact paths, and replay command.
+
 ## Repository structure
 
 ```text
@@ -185,10 +211,15 @@ plugins/execution/                    Installed Claude Code plugin
   agents/issue-worker.md
   agents/change-reviewer.md
   agents/adversarial-reviewer.md
+plugins/kestrel/                      Installed Claude Code plugin
+  .claude-plugin/plugin.json
+  bin/kestrel-assign
+  skills/assign/
 tests/discovery/                      Evaluation prompts and fixtures
 tests/design/                         Design evaluation prompts and scenarios
 tests/planning/                       Planning evaluation prompts and scenarios
 tests/execution/                      Execution evaluation prompts and scenarios
+tests/kestrel/                        Kestrel assignment evaluation and wrapper contract test
 scripts/validate.py                   Dependency-free repository validation
 ```
 
@@ -210,6 +241,13 @@ claude plugin validate ./plugins/discovery
 claude plugin validate ./plugins/design
 claude plugin validate ./plugins/planning
 claude plugin validate ./plugins/execution
+claude plugin validate ./plugins/kestrel
+```
+
+Test the Kestrel job wrapper without starting a live Kestrel run:
+
+```bash
+node --test tests/kestrel/assign-script.test.mjs
 ```
 
 Load the plugin directly during development:
@@ -219,11 +257,12 @@ claude --plugin-dir ./plugins/discovery
 claude --plugin-dir ./plugins/design
 claude --plugin-dir ./plugins/planning
 claude --plugin-dir ./plugins/execution
+claude --plugin-dir ./plugins/kestrel
 ```
 
 ## Security
 
-The plugins include no hooks, Model Context Protocol servers, executable skill scripts, or preapproved tools. Execution includes model-neutral packaged agents; the reviewer agents cannot write files. Review skill and agent instructions before installation, as you would with any agent extension.
+The plugins include no hooks, Model Context Protocol servers, or preapproved tools. Execution includes model-neutral packaged agents; the reviewer agents cannot write files. The Kestrel plugin includes one executable wrapper that invokes a locally installed `kestrel job run`. It requests a managed worktree and does not merge or publish by default. Review skill and agent instructions before installation, as you would with any agent extension.
 
 ## License
 

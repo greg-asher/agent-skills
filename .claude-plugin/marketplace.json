@@ -84,6 +84,25 @@
         "code-review",
         "defect-discovery"
       ]
+    },
+    {
+      "name": "kestrel",
+      "source": "./plugins/kestrel",
+      "description": "Assign bounded repository work to Kestrel for autonomous implementation and validation in an isolated managed worktree.",
+      "author": {
+        "name": "Greg Asher",
+        "url": "https://github.com/greg-asher"
+      },
+      "homepage": "https://github.com/greg-asher/agent-skills",
+      "repository": "https://github.com/greg-asher/agent-skills",
+      "license": "MIT",
+      "category": "productivity",
+      "tags": [
+        "kestrel",
+        "delegation",
+        "autonomous-development",
+        "managed-worktrees"
+      ]
     }
   ]
 }

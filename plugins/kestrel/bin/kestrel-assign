@@ -1,0 +1,220 @@
+#!/usr/bin/env node
+
+import { createHash, randomBytes } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { basename, join, resolve } from "node:path";
+import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
+
+const parsed = parseArguments(process.argv.slice(2));
+
+if (parsed.help) {
+  process.stdout.write(usage());
+  process.exit(0);
+}
+
+try {
+  const workspaceRoot = resolveGitRoot(required(parsed.workspace, "--workspace"));
+  const taskFile = resolve(required(parsed.taskFile, "--task-file"));
+  const task = readTask(taskFile);
+  const sessionId = parsed.session ?? buildSessionId(task);
+  assertIdentifier(sessionId, "session");
+
+  const stateRoot = resolve(
+    parsed.stateDir ??
+      join(process.env.CLAUDE_PLUGIN_DATA ?? tmpdir(), "kestrel-plugin", "assignments"),
+  );
+  mkdirSync(stateRoot, { recursive: true });
+  const assignmentDir = join(stateRoot, sessionId);
+  if (existsSync(assignmentDir)) {
+    throw new Error(`Assignment already exists: ${assignmentDir}`);
+  }
+  mkdirSync(assignmentDir);
+
+  const inputPath = join(assignmentDir, "input.json");
+  const outputPath = join(assignmentDir, "output.json");
+  const profileId = parsed.profile ?? "kestrel";
+  const approvalPolicyPackId = parsed.approvalPack ?? "dev";
+  const workspaceId = buildWorkspaceId(workspaceRoot);
+
+  const input = {
+    version: "job_input_v1",
+    profileId,
+    approvalPolicyPackId,
+    turn: {
+      sessionId,
+      eventType: "job.run",
+      message: task,
+      noninteractive: true,
+      stepAgent: "agent.loop",
+      interactionMode: "build",
+      actSubmode: "full_auto",
+      systemInstructions: [
+        "Complete the assigned repository task end to end. Implement the change, validate it, and report the result.",
+        "Work only in the managed Kestrel worktree. Do not merge, push, or publish unless the assignment explicitly requires it.",
+        "If missing authority or information prevents responsible completion, stop with one specific blocker instead of guessing.",
+      ],
+      workspace: {
+        workspaceId,
+        workspaceRoot,
+        launchCwd: workspaceRoot,
+        appRoot: ".",
+        commands: {},
+        label: basename(workspaceRoot),
+        managedWorktreeRequired: true,
+        managedWorktreeIsolation: "session",
+        sourceWorkspaceRoot: workspaceRoot,
+        managedWorktreeBaseRef: "HEAD",
+      },
+    },
+  };
+
+  writeFileSync(inputPath, `${JSON.stringify(input, null, 2)}\n`, "utf8");
+
+  const kestrelBin = parsed.kestrelBin ?? process.env.KESTREL_BIN ?? "kestrel";
+  const child = spawnSync(
+    kestrelBin,
+    ["job", "run", "--json-in", inputPath, "--json-out", outputPath],
+    {
+      cwd: workspaceRoot,
+      env: process.env,
+      encoding: "utf8",
+      maxBuffer: 16 * 1024 * 1024,
+    },
+  );
+
+  if (child.stdout) process.stdout.write(child.stdout);
+  if (child.stderr) process.stderr.write(child.stderr);
+  if (child.error) throw child.error;
+
+  if (!existsSync(outputPath)) {
+    process.stderr.write(`assignment_dir=${assignmentDir}\n`);
+    process.stderr.write(`input=${inputPath}\n`);
+    process.stderr.write(`Kestrel did not produce ${outputPath}.\n`);
+    process.exit(child.status ?? 1);
+  }
+
+  const output = JSON.parse(readFileSync(outputPath, "utf8"));
+  printSummary({ assignmentDir, inputPath, outputPath, output });
+
+  if (child.status !== 0) process.exit(child.status ?? 1);
+  const status = output?.job?.status;
+  if (status === "COMPLETED") process.exit(0);
+  if (status === "WAITING") process.exit(2);
+  process.exit(1);
+} catch (error) {
+  process.stderr.write(`kestrel-assign: ${error instanceof Error ? error.message : String(error)}\n`);
+  process.exit(1);
+}
+
+function parseArguments(args) {
+  const values = {};
+  const valueFlags = new Map([
+    ["--workspace", "workspace"],
+    ["--task-file", "taskFile"],
+    ["--state-dir", "stateDir"],
+    ["--session", "session"],
+    ["--profile", "profile"],
+    ["--approval-pack", "approvalPack"],
+    ["--kestrel-bin", "kestrelBin"],
+  ]);
+
+  for (let index = 0; index < args.length; index += 1) {
+    const token = args[index];
+    if (token === "--help" || token === "-h") {
+      values.help = true;
+      continue;
+    }
+    const key = valueFlags.get(token);
+    if (!key) throw new Error(`Unknown argument: ${token}`);
+    const value = args[index + 1];
+    if (!value || value.startsWith("--")) throw new Error(`${token} requires a value`);
+    values[key] = value;
+    index += 1;
+  }
+
+  if (values.approvalPack && !["dev", "ci_bot", "production"].includes(values.approvalPack)) {
+    throw new Error("--approval-pack must be dev, ci_bot, or production");
+  }
+  return values;
+}
+
+function required(value, flag) {
+  if (!value) throw new Error(`${flag} is required`);
+  return value;
+}
+
+function readTask(taskFile) {
+  const task = readFileSync(taskFile, "utf8").trim();
+  if (!task) throw new Error(`Task file is empty: ${taskFile}`);
+  return task;
+}
+
+function resolveGitRoot(workspace) {
+  const candidate = realpathSync(resolve(workspace));
+  const result = spawnSync("git", ["-C", candidate, "rev-parse", "--show-toplevel"], {
+    encoding: "utf8",
+  });
+  if (result.status !== 0) {
+    throw new Error(`${candidate} is not inside a Git repository`);
+  }
+  return realpathSync(result.stdout.trim());
+}
+
+function buildWorkspaceId(workspaceRoot) {
+  const label = slug(basename(workspaceRoot)) || "workspace";
+  const digest = createHash("sha256").update(workspaceRoot).digest("hex").slice(0, 8);
+  return `${label}-${digest}`;
+}
+
+function buildSessionId(task) {
+  const words = task.split(/\s+/u).slice(0, 6).join(" ");
+  const label = slug(words).slice(0, 42) || "assignment";
+  const stamp = new Date().toISOString().replace(/[-:TZ.]/gu, "").slice(0, 14);
+  return `assign-${label}-${stamp}-${randomBytes(3).toString("hex")}`;
+}
+
+function slug(value) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-+|-+$/gu, "");
+}
+
+function assertIdentifier(value, label) {
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$/u.test(value)) {
+    throw new Error(`${label} must use 1-120 letters, digits, dots, underscores, or hyphens`);
+  }
+}
+
+function printSummary({ assignmentDir, inputPath, outputPath, output }) {
+  const job = output?.job ?? {};
+  const assistantText = job?.result?.assistantText;
+  process.stdout.write(`assignment_dir=${assignmentDir}\n`);
+  process.stdout.write(`input=${inputPath}\n`);
+  process.stdout.write(`output=${outputPath}\n`);
+  process.stdout.write(`status=${job.status ?? "UNKNOWN"}\n`);
+  if (job.sessionId) process.stdout.write(`session=${job.sessionId}\n`);
+  if (job.threadId) process.stdout.write(`thread=${job.threadId}\n`);
+  if (job.runId) process.stdout.write(`run=${job.runId}\n`);
+  if (job.replay?.commands?.replay) process.stdout.write(`replay=${job.replay.commands.replay}\n`);
+  if (job.replay?.commands?.doctor) process.stdout.write(`doctor=${job.replay.commands.doctor}\n`);
+  if (typeof assistantText === "string" && assistantText.trim()) {
+    process.stdout.write(`assistant_text:\n${assistantText.trim()}\n`);
+  }
+}
+
+function usage() {
+  return [
+    "Usage: kestrel-assign --workspace <path> --task-file <path> [options]",
+    "",
+    "Options:",
+    "  --state-dir <path>",
+    "  --session <id>",
+    "  --profile <id>",
+    "  --approval-pack <dev|ci_bot|production>",
+    "  --kestrel-bin <path>",
+    "  --help",
+    "",
+  ].join("\n");
+}

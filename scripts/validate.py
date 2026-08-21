@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -16,6 +17,7 @@ EXPECTED_PLUGINS = {
     "design": {"change-design", "start-design"},
     "planning": {"create-issues", "create-product-brief"},
     "execution": {"review-work", "work-on-issues"},
+    "kestrel": {"assign"},
 }
 EXPECTED_AGENTS = {
     "execution": {"adversarial-reviewer", "change-reviewer", "issue-worker"},
@@ -166,6 +168,12 @@ def main() -> None:
         / "assets"
         / "application-model.schema.json"
     )
+
+    kestrel_assign = ROOT / "plugins" / "kestrel" / "bin" / "kestrel-assign"
+    if not kestrel_assign.is_file():
+        fail("Missing plugins/kestrel/bin/kestrel-assign")
+    if not os.access(kestrel_assign, os.X_OK):
+        fail("plugins/kestrel/bin/kestrel-assign must be executable")
 
     for path in ROOT.rglob("*"):
         if path.is_file() and ".git" not in path.parts:
