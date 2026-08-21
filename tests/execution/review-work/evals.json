@@ -1,0 +1,45 @@
+{
+  "skill_name": "review-work",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /review-work on the attached clean implemented wave.",
+      "expected_output": "Claude scopes the review to EX-601 and its integration commit, builds a risk view from the actual name-normalization change, and invokes both independent read-only reviewers. With no confirmed blocking defect, it moves EX-601 to Done, recomputes the Ready frontier, and creates a separate local issue-state commit without changing product code.",
+      "files": [
+        "scenarios/clean-wave.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Use /review-work on the attached implemented wave and reconcile the ordinary reviewer finding.",
+      "expected_output": "Claude traces the empty-name path and confirms that the change now produces a blank download filename. It creates one repair issue with triggering conditions, affected issue and code path, constraints, and observable completion conditions. The defect blocks EX-701, which remains Implemented, and the repair issue enters Ready. Claude commits only the local graph and defect issue changes.",
+      "files": [
+        "scenarios/common-regression.md"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Use /review-work on the retry-sensitive wave in the fixture.",
+      "expected_output": "Claude uses the adversarial reviewer to trace the concurrent retry sequence and confirms the duplicate charge path rather than filing a generic concurrency concern. It creates one blocking repair issue, leaves EX-801 Implemented, records the dependency, and does not edit product code.",
+      "files": [
+        "scenarios/retry-concurrency-defect.md"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Use /review-work on this schema migration wave.",
+      "expected_output": "Claude checks migration and mixed-version behavior, confirms that the old worker cannot read rows written after the migration, and creates one blocking compatibility repair issue linked to EX-901 and the migration path. It does not mark EX-901 Done or prescribe a new architecture.",
+      "files": [
+        "scenarios/migration-compatibility-defect.md"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Use /review-work on the implemented reporting wave. The fixture includes one real follow-up defect that does not prevent the promised outcome.",
+      "expected_output": "Claude confirms the administrator-only timestamp display defect and files it as an independent Ready repair issue. Because the seller reporting outcome and its constraints still hold, the defect does not block EX-1001 from moving to Done. Claude recomputes the frontier and commits the local review-state and new issue separately from the implementation commit.",
+      "files": [
+        "scenarios/nonblocking-defect.md"
+      ]
+    }
+  ]
+}

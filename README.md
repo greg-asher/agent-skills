@@ -1,6 +1,6 @@
 # Agent Skills
 
-Reusable Claude Code skills for discovery, solution design, and implementation planning.
+Reusable Claude Code skills for discovery, solution design, implementation planning, coordinated execution, and independent review.
 
 ## Discovery plugin
 
@@ -35,6 +35,17 @@ The `planning` plugin contains two skills:
 
 Planning is convergent. It packages settled discovery and design decisions into one canonical delivery brief, then turns that brief into implementation issues without restarting discovery or design.
 
+## Execution plugin
+
+The `execution` plugin contains two skills and three model-neutral agents:
+
+| Skill | Purpose |
+| --- | --- |
+| `/execution:work-on-issues` | Select and implement one coherent wave from the ready issue frontier, update the graph, and create one local integration commit. |
+| `/execution:review-work` | Independently review implemented issues, create repair issues for confirmed defects, and gate completion. |
+
+Execution uses the tracker supplied for the invocation or Planning's local implementation queue. The active Claude Code model orchestrates the work, and packaged agents inherit that model.
+
 ## Install in Claude Code
 
 Add this repository as a marketplace:
@@ -59,6 +70,12 @@ Install the planning plugin:
 
 ```text
 /plugin install planning@greg-asher-skills
+```
+
+Install the execution plugin:
+
+```text
+/plugin install execution@greg-asher-skills
 ```
 
 The plugins use Git commit versions. Updating the marketplace and a plugin picks up the latest published commit.
@@ -101,6 +118,18 @@ Create implementation issues from the Product Brief:
 /planning:create-issues Turn the delivery-ready Product Brief into durable, agent-ready issue files.
 ```
 
+Implement one coherent ready wave:
+
+```text
+/execution:work-on-issues Work the current ready frontier. Keep coupled contract changes sequential.
+```
+
+Review the implemented wave:
+
+```text
+/execution:review-work Review every Implemented issue that has not reached Done.
+```
+
 Arguments are optional. Each skill can establish its starting context from the current session and workspace.
 
 ## What the skills produce
@@ -119,6 +148,18 @@ Both skills use the included plain-language writing rules. Reports lead with the
 
 `create-issues` writes an implementation queue and individual issue files under `docs/planning/<initiative>/issues/`. It creates tracker issues only when explicitly requested.
 
+`work-on-issues` advances selected issues from `Ready` through `In progress` to `Implemented`, updates dependencies when the code reveals them, and creates one local integration commit for a successful wave. It does not push or open a pull request.
+
+`review-work` reviews the wave without modifying product code. It advances clean issues to `Done`, creates repair issues for confirmed defects, updates blocking relationships, and makes a separate local issue-state commit when local issue files change.
+
+The complete lifecycle is:
+
+```text
+Discover -> Design -> Plan -> Work on Issues -> Review Work
+                                      ^              |
+                                      |--- defects ---|
+```
+
 ## Repository structure
 
 ```text
@@ -135,9 +176,17 @@ plugins/planning/                     Installed Claude Code plugin
   .claude-plugin/plugin.json
   skills/create-product-brief/
   skills/create-issues/
+plugins/execution/                    Installed Claude Code plugin
+  .claude-plugin/plugin.json
+  skills/work-on-issues/
+  skills/review-work/
+  agents/issue-worker.md
+  agents/change-reviewer.md
+  agents/adversarial-reviewer.md
 tests/discovery/                      Evaluation prompts and fixtures
 tests/design/                         Design evaluation prompts and scenarios
 tests/planning/                       Planning evaluation prompts and scenarios
+tests/execution/                      Execution evaluation prompts and scenarios
 scripts/validate.py                   Dependency-free repository validation
 ```
 
@@ -158,6 +207,7 @@ claude plugin validate .
 claude plugin validate ./plugins/discovery
 claude plugin validate ./plugins/design
 claude plugin validate ./plugins/planning
+claude plugin validate ./plugins/execution
 ```
 
 Load the plugin directly during development:
@@ -166,11 +216,12 @@ Load the plugin directly during development:
 claude --plugin-dir ./plugins/discovery
 claude --plugin-dir ./plugins/design
 claude --plugin-dir ./plugins/planning
+claude --plugin-dir ./plugins/execution
 ```
 
 ## Security
 
-The plugins include no hooks, Model Context Protocol servers, executable skill scripts, or preapproved tools. Review skill instructions before installation, as you would with any agent extension.
+The plugins include no hooks, Model Context Protocol servers, executable skill scripts, or preapproved tools. Execution includes model-neutral packaged agents; the reviewer agents cannot write files. Review skill and agent instructions before installation, as you would with any agent extension.
 
 ## License
 

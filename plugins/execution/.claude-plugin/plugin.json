@@ -1,0 +1,17 @@
+{
+  "name": "execution",
+  "description": "Work a dependency-aware issue graph through coordinated implementation waves and independent defect review.",
+  "author": {
+    "name": "Greg Asher",
+    "url": "https://github.com/greg-asher"
+  },
+  "homepage": "https://github.com/greg-asher/agent-skills",
+  "repository": "https://github.com/greg-asher/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "issue-orchestration",
+    "multi-agent-implementation",
+    "code-review",
+    "defect-discovery"
+  ]
+}

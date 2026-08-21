@@ -1,0 +1,45 @@
+{
+  "skill_name": "work-on-issues",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /work-on-issues on the attached local issue graph. Select the next coherent wave and explain how you would delegate it in this disposable fixture repository.",
+      "expected_output": "Claude treats the local queue as authoritative, selects EX-101 and EX-102 from Ready, moves both to In progress, and delegates them concurrently because their behavior and files are disjoint. It does not select blocked EX-103. The lead integrates both results, runs their focused checks plus the combined test command, marks successful issues Implemented, recomputes the frontier, and creates one local wave commit that references both identifiers without pushing.",
+      "files": [
+        "scenarios/independent-ready-issues.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Use /work-on-issues on these two Ready issues. Decide whether they should run concurrently and work the coherent wave.",
+      "expected_output": "Claude recognizes that both issues change the same public event contract and migration path. It sequences the contract producer before its consumer, or selects only the foundational issue when the second cannot be implemented against a stable intermediate contract. It does not invent a product dependency merely for file contention. It creates one wave commit only after the selected combined work passes integration checks.",
+      "files": [
+        "scenarios/coupled-contract-issues.md"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Use /work-on-issues for EX-301. The implementation trace in the fixture reveals a prerequisite missing from the issue graph.",
+      "expected_output": "Claude starts from EX-301 because it was explicitly named, then records the newly discovered durable-token prerequisite as a coherent issue and rewires EX-301 to depend on it. It does not implement around the missing guarantee or change the settled outcome. EX-301 becomes Blocked, the new prerequisite becomes Ready if it has no dependencies, the frontier is recomputed, and no successful-wave commit or Implemented state is claimed.",
+      "files": [
+        "scenarios/discovered-dependency.md"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Use /work-on-issues for EX-401. The current design and implementation finding conflict as described in the fixture.",
+      "expected_output": "Claude does not silently replace the settled tenant-isolation design with a shared unscoped cache. It marks EX-401 Blocked, records the design contradiction, and routes the decision back to Design. It does not weaken the issue, mark it Implemented, or create an implementation commit.",
+      "files": [
+        "scenarios/design-contradiction.md"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Use /work-on-issues for EX-501. The worker implementation is complete, but the fixture's wave-level check fails.",
+      "expected_output": "Claude inspects the worker result, runs the combined workflow check, and treats the failing artifact-identity scenario as unresolved implementation work. EX-501 remains In progress or becomes Blocked only if a real blocker is identified. It is not marked Implemented, and Claude does not create the successful integration commit required for a completed wave.",
+      "files": [
+        "scenarios/failed-integration-check.md"
+      ]
+    }
+  ]
+}

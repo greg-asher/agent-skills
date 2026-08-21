@@ -62,6 +62,25 @@
         "implementation-planning",
         "agent-ready-issues"
       ]
+    },
+    {
+      "name": "execution",
+      "source": "./plugins/execution",
+      "description": "Coordinate dependency-aware implementation waves and independently review completed work for common and rare defects.",
+      "author": {
+        "name": "Greg Asher",
+        "url": "https://github.com/greg-asher"
+      },
+      "homepage": "https://github.com/greg-asher/agent-skills",
+      "repository": "https://github.com/greg-asher/agent-skills",
+      "license": "MIT",
+      "category": "productivity",
+      "tags": [
+        "issue-orchestration",
+        "multi-agent-development",
+        "code-review",
+        "defect-discovery"
+      ]
     }
   ]
 }

@@ -15,6 +15,10 @@ EXPECTED_PLUGINS = {
     "discovery": {"deep-discovery", "start-discovery"},
     "design": {"change-design", "start-design"},
     "planning": {"create-issues", "create-product-brief"},
+    "execution": {"review-work", "work-on-issues"},
+}
+EXPECTED_AGENTS = {
+    "execution": {"adversarial-reviewer", "change-reviewer", "issue-worker"},
 }
 
 
@@ -58,12 +62,31 @@ def validate_skill(skill_dir: Path) -> None:
         fail(f"Missing skill description: {skill_file.relative_to(ROOT)}")
     if metadata.get("disable-model-invocation") != "true":
         fail(f"Skill must remain manually invoked: {skill_file.relative_to(ROOT)}")
+    for model_key in ("model", "effort"):
+        if model_key in metadata:
+            fail(f"Skill must remain model-neutral: {skill_file.relative_to(ROOT)}")
 
     text = skill_file.read_text()
     for target in re.findall(r"\]\((assets|references)/([^)]+)\)", text):
         relative = Path(target[0]) / target[1]
         if not (skill_dir / relative).is_file():
             fail(f"Broken skill reference: {skill_dir.name}/{relative}")
+
+
+def validate_agent(agent_file: Path) -> None:
+    metadata = frontmatter(agent_file)
+    if metadata.get("name") != agent_file.stem:
+        fail(f"Agent name does not match file: {agent_file.relative_to(ROOT)}")
+    if not metadata.get("description"):
+        fail(f"Missing agent description: {agent_file.relative_to(ROOT)}")
+    for model_key in ("model", "effort"):
+        if model_key in metadata:
+            fail(f"Agent must remain model-neutral: {agent_file.relative_to(ROOT)}")
+
+    if agent_file.stem in {"change-reviewer", "adversarial-reviewer"}:
+        allowed = {tool.strip() for tool in metadata.get("tools", "").split(",")}
+        if allowed != {"Read", "Grep", "Glob"}:
+            fail(f"Review agent must be read-only: {agent_file.relative_to(ROOT)}")
 
 
 def validate_evals(plugin_name: str, skill_name: str) -> None:
@@ -107,6 +130,16 @@ def main() -> None:
             style_files.append(
                 skills / skill_name / "references" / "plain-language-writing.md"
             )
+
+        expected_agents = EXPECTED_AGENTS.get(plugin_name, set())
+        agent_dir = plugin / "agents"
+        actual_agents = (
+            {path.stem for path in agent_dir.glob("*.md")} if agent_dir.is_dir() else set()
+        )
+        if actual_agents != expected_agents:
+            fail(f"Unexpected {plugin_name} agents: {sorted(actual_agents)}")
+        for agent_name in sorted(expected_agents):
+            validate_agent(agent_dir / f"{agent_name}.md")
 
     hashes = {hashlib.sha256(path.read_bytes()).hexdigest() for path in style_files}
     if len(hashes) != 1:

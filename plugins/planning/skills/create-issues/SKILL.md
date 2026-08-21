@@ -71,7 +71,7 @@ Embed the relevant requirements and context in the issue. Link the Product Brief
 
 Add a dependency only when the downstream issue cannot be completed against the current system or a stable contract. Do not serialize independent work for convenience.
 
-Identify the initial frontier: every issue with no unresolved prerequisite.
+Classify every issue in the shared execution graph. Put issues with no unresolved prerequisite in `Ready`. Put issues with unresolved prerequisites in `Blocked` and name the issue that must reach `Done` before each can advance.
 
 ## 4. Check the complete plan
 
@@ -92,7 +92,7 @@ docs/planning/<initiative-slug>/issues/
   02-<issue-slug>.md
 ```
 
-Write `implementation-queue.md` using [the queue template](assets/implementation-queue-template.md). Order the list for comprehension, not to imply dependencies that do not exist.
+Write `implementation-queue.md` using [the queue template](assets/implementation-queue-template.md). This file is the living issue graph used by implementation and review when no external tracker is authoritative. Put each issue in exactly one state and keep real dependency relationships in the issue files. Order issues within a state for comprehension, not to imply dependencies that do not exist.
 
 Create or update external tracker issues only when the user explicitly requests that separate action.
 
@@ -100,6 +100,6 @@ Finish the session with a short synthesis covering:
 
 - the delivery shape
 - the number of issues
-- the initial frontier
-- the important dependency or sequencing boundary
+- the initial `Ready` frontier
+- the important blocked dependency boundary
 - the issue directory

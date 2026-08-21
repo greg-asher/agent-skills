@@ -1,12 +1,23 @@
 # <Initiative> Implementation Queue
 
-## Initial Frontier
+Each issue appears in one state. `Ready` is the current dependency-free frontier. Move issues between states as implementation and review change the graph.
 
-Link every issue with no unresolved prerequisite.
+## Ready
 
-## Issue Set
+- [<Issue title>](01-issue-slug.md)
 
-1. [<Issue title>](01-issue-slug.md)
-2. [<Issue title>](02-issue-slug.md)
+## In progress
 
-State real dependency relationships next to the affected issue. List independent issues without manufacturing an order between them.
+None.
+
+## Blocked
+
+- [<Issue title>](02-issue-slug.md) — blocked by [<prerequisite issue>](01-issue-slug.md)
+
+## Implemented
+
+None.
+
+## Done
+
+None.
