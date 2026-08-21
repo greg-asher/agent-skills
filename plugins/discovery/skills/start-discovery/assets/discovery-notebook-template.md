@@ -19,7 +19,13 @@
 
 ## Product Hypotheses
 
-## Critical Product Experiences
+## Core Value Journey
+
+Track the wider journey, the current product-owned journey, its starting trigger, its meaningful outcome, and the responsibility boundaries and handoffs between them.
+
+## Critical Branches
+
+Track only branches that could materially change value, product responsibility, system boundaries, or risk.
 
 ## Domain and System Context
 

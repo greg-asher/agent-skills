@@ -66,11 +66,23 @@ def validate_skill(skill_dir: Path) -> None:
         if model_key in metadata:
             fail(f"Skill must remain model-neutral: {skill_file.relative_to(ROOT)}")
 
-    text = skill_file.read_text()
-    for target in re.findall(r"\]\((assets|references)/([^)]+)\)", text):
-        relative = Path(target[0]) / target[1]
-        if not (skill_dir / relative).is_file():
-            fail(f"Broken skill reference: {skill_dir.name}/{relative}")
+    for markdown in skill_dir.rglob("*.md"):
+        relative_markdown = markdown.relative_to(skill_dir)
+        if relative_markdown.parts[0] == "assets":
+            continue
+        text = markdown.read_text()
+        for raw_target in re.findall(r"\]\(([^)]+)\)", text):
+            if raw_target.startswith(("http://", "https://", "#")):
+                continue
+            target = raw_target.split("#", 1)[0]
+            if not target:
+                continue
+            resolved = (markdown.parent / target).resolve()
+            if not resolved.is_file():
+                fail(
+                    "Broken skill reference: "
+                    f"{markdown.relative_to(ROOT)} -> {raw_target}"
+                )
 
 
 def validate_agent(agent_file: Path) -> None:
@@ -144,6 +156,16 @@ def main() -> None:
     hashes = {hashlib.sha256(path.read_bytes()).hexdigest() for path in style_files}
     if len(hashes) != 1:
         fail("Plain-language writing references differ between skills")
+
+    read_json(
+        ROOT
+        / "plugins"
+        / "discovery"
+        / "skills"
+        / "deep-discovery"
+        / "assets"
+        / "application-model.schema.json"
+    )
 
     for path in ROOT.rglob("*"):
         if path.is_file() and ".git" not in path.parts:

@@ -11,7 +11,7 @@
     {
       "name": "discovery",
       "source": "./plugins/discovery",
-      "description": "Conversational product discovery for greenfield ideas and deep investigation of existing applications.",
+      "description": "Conversational product discovery centered on core value journeys, plus deep application investigation with adaptive visual, architecture, onboarding, and presentation assets.",
       "author": {
         "name": "Greg Asher",
         "url": "https://github.com/greg-asher"
@@ -23,7 +23,10 @@
       "tags": [
         "discovery",
         "product",
-        "codebase-analysis"
+        "value-journey",
+        "codebase-analysis",
+        "architecture-diagrams",
+        "presentations"
       ]
     },
     {

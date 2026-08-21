@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/greg-asher/agent-skills/application-model.schema.json",
+  "title": "Deep Discovery Application Model",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "application",
+    "scope",
+    "nodes",
+    "relationships",
+    "flows",
+    "unknowns"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "application": {
+      "type": "object",
+      "required": ["name", "description"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "users": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "scope": {
+      "type": "object",
+      "required": ["included", "excluded"],
+      "properties": {
+        "included": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "excluded": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "unavailable": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "analysis": {
+      "type": "object",
+      "properties": {
+        "tools": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sourceRoots": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "excludedPaths": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "parseFailures": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "coverageLimits": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "kind", "description", "support"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "actor",
+              "application",
+              "repository",
+              "subsystem",
+              "service",
+              "process",
+              "job",
+              "module",
+              "interface",
+              "data-store",
+              "queue",
+              "external-system",
+              "data-entity",
+              "environment",
+              "other"
+            ]
+          },
+          "description": { "type": "string" },
+          "status": { "type": "string" },
+          "owner": { "type": ["string", "null"] },
+          "parentId": { "type": ["string", "null"] },
+          "support": { "$ref": "#/$defs/support" },
+          "evidence": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/evidence" }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "source", "target", "kind", "support"],
+        "properties": {
+          "id": { "type": "string" },
+          "source": { "type": "string" },
+          "target": { "type": "string" },
+          "kind": { "type": "string" },
+          "label": { "type": "string" },
+          "direction": { "type": "string" },
+          "support": { "$ref": "#/$defs/support" },
+          "evidence": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/evidence" }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "flows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "trigger", "outcome", "steps"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "actor": { "type": ["string", "null"] },
+          "trigger": { "type": "string" },
+          "outcome": { "type": "string" },
+          "status": { "type": "string" },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["order", "nodeId", "action"],
+              "properties": {
+                "order": { "type": "integer", "minimum": 1 },
+                "nodeId": { "type": "string" },
+                "action": { "type": "string" },
+                "support": { "$ref": "#/$defs/support" },
+                "evidence": {
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/evidence" }
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "branches": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "partitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "basis", "nodeIds"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "basis": { "type": "string" },
+          "parentId": { "type": ["string", "null"] },
+          "nodeIds": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question", "significance"],
+        "properties": {
+          "question": { "type": "string" },
+          "significance": { "type": "string" },
+          "relatedNodeIds": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "$defs": {
+    "support": {
+      "type": "string",
+      "enum": [
+        "observed-runtime",
+        "demonstrated-test",
+        "static-analysis",
+        "declared",
+        "inferred",
+        "unknown"
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["source", "description"],
+      "properties": {
+        "source": { "type": "string" },
+        "location": { "type": ["string", "null"] },
+        "description": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

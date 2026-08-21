@@ -2,6 +2,8 @@
 
 Tested with fresh agents in isolated workspaces on 2026-08-20.
 
+These results cover the conversational discovery workflow before adaptive visual and presentation packaging was added. The later packaging changes are covered by the updated evaluation scenarios and repository and Claude plugin validation. No additional subagent forward tests were run for that change.
+
 ## B2B platform dependencies
 
 The agent opened with a recent missed-expansion story rather than a feature or data question. Across three turns it followed the seller's investigation, separated the sponsor thesis from observed behavior, and maintained a detailed Scout notebook.

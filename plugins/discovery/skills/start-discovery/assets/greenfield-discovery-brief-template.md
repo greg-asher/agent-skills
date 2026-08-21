@@ -4,7 +4,7 @@
 
 ## Current Product Thesis
 
-State who the product is for, the situation, the progress sought, the product promise, the smallest coherent value loop, and why the opportunity appears worth pursuing.
+State who the product is for, the situation, the progress sought, the product promise, the core value journey the solution will be responsible for, and why the opportunity appears worth pursuing.
 
 ## Desired Change and Why Now
 
@@ -22,11 +22,17 @@ Explain the selected opportunity, why it was selected, the outcome sought, what 
 
 ## Product Promise
 
-## Critical Product Experiences
+## Core Value Journey
 
-Describe two or three defining paths as:
+State the real-world trigger, the meaningful outcome, where the product's responsibility begins and ends, and what it must make successfully happen between them. Link the overview flowchart and any focused branch flows.
 
-`trigger -> action -> decisions and handoffs -> information movement -> outcome`
+Describe the journey as:
+
+`trigger -> actor progress -> product responsibility -> decisions and handoffs -> information or state change -> meaningful outcome`
+
+## Critical Branches and Handoffs
+
+Describe only the alternate paths, approvals, outside dependencies, exceptions, and recovery paths that materially change value, responsibility, or risk.
 
 ## Domain Stories and Business Rules
 

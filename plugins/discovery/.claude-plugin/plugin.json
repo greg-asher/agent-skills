@@ -1,6 +1,6 @@
 {
   "name": "discovery",
-  "description": "Develop greenfield product ideas and investigate existing applications without mixing discovery with delivery planning.",
+  "description": "Develop greenfield product ideas into core value journeys and investigate existing applications, then produce adaptive discovery, architecture, onboarding, and presentation assets without mixing discovery with delivery planning.",
   "author": {
     "name": "Greg Asher",
     "url": "https://github.com/greg-asher"
@@ -12,6 +12,8 @@
     "discovery",
     "product-discovery",
     "codebase-analysis",
-    "technical-onboarding"
+    "technical-onboarding",
+    "architecture-diagrams",
+    "presentations"
   ]
 }

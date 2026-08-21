@@ -1,6 +1,6 @@
 ---
 name: start-discovery
-description: Guide a research-augmented, conversational discovery of a greenfield software product from initial idea through opportunity, product thesis, critical experiences, domain and system context, and a prioritized learning agenda. Use for new application ideas with no existing codebase when the user explicitly invokes /start-discovery.
+description: Guide a research-augmented, conversational discovery of a greenfield software product from initial idea through opportunity, product thesis, the core value journey the solution will be responsible for, domain and system context, a prioritized learning agenda, adaptive flowcharts, and a product discovery briefing. Use for new application ideas with no existing codebase when the user explicitly invokes /start-discovery.
 disable-model-invocation: true
 ---
 
@@ -16,7 +16,7 @@ Do not inspect or design source code. Keep this work separate from Product Brief
 
 ## Write in plain language
 
-Read [the plain-language writing guide](references/plain-language-writing.md) before you write the notebook, final brief, or session synthesis. Apply its core rules to all prose. Apply its technical rules to product and system descriptions. Apply its editorial rules to research findings, analysis, claims, and uncertainty.
+Read [the plain-language writing guide](references/plain-language-writing.md) before you write the notebook, final brief, visual assets, presentation, or session synthesis. Apply its core rules to all prose. Apply its technical rules to product and system descriptions. Apply its editorial rules to research findings, analysis, claims, and uncertainty.
 
 In every question, response, and artifact:
 
@@ -54,7 +54,7 @@ Use [the notebook template](assets/discovery-notebook-template.md). Keep it curr
 
 Maintain this discovery map:
 
-`desired change -> actors and situations -> current stories and alternatives -> opportunities -> target opportunity -> product hypotheses -> critical experiences -> domain and system context -> business and technical drivers -> assumptions and learning moves`
+`desired change -> actors and situations -> current stories and alternatives -> opportunities -> target opportunity -> product hypotheses -> core value journey and product responsibility -> critical branches -> domain and system context -> business and technical drivers -> assumptions and learning moves`
 
 Follow branches that can change the product's value, shape, system boundary, or risk. Do not ask every possible question.
 
@@ -138,13 +138,15 @@ Work with the participant to:
 - explore and compare multiple possible responses
 - agree on a product promise
 - define the smallest complete experience that creates value
+- define the core value journey from the real-world trigger to the meaningful outcome
+- mark where the product takes responsibility, what it must make happen, and where responsibility passes to a person or outside system
 - clarify adoption, incentives, buying, value exchange, costs, and operating responsibility
-- tell two or three critical product experiences end to end
+- identify only the alternate paths, decisions, handoffs, and recovery paths that materially change value or risk
 - state meaningful non-goals
 
 Research current alternatives, switching behavior, business models, incentives for each group, comparable approaches, and dependencies discovered earlier.
 
-Do not turn the result into a feature backlog. Leave middle discovery when the target opportunity, product promise, value for each actor, and defining experiences form a clear product bet.
+Do not turn the result into a feature backlog. Leave middle discovery when the target opportunity, product promise, value for each actor, and core value journey form a clear product bet.
 
 ## Run late discovery: frame domain, system, and risk
 
@@ -185,7 +187,8 @@ Discovery is ready to close when:
 - the desired change and target opportunity are coherent
 - the value for each actor is understood
 - the product promise and smallest value loop are explicit
-- the defining experiences can be told end to end
+- the wider journey and the product-owned core value journey can be told end to end
+- the product's responsibility boundaries, material handoffs, and consequential branches are explicit
 - the domain and system context are visible at the right level
 - the business conditions and the needs that future architecture must support are understood
 - the riskiest assumptions and next learning moves are prioritized
@@ -197,17 +200,45 @@ Then write a shareable Greenfield Discovery Brief using [the brief template](ass
 - `docs/discovery/<product-slug>-greenfield-discovery.md`, or
 - `discovery/<product-slug>-greenfield-discovery.md` when no documentation structure exists.
 
-State the strongest current view and where it remains uncertain. Use a simple diagram only when it makes an opportunity, critical experience, or system relationship easier to understand. Cite important external research near the claim and include direct sources.
+State the strongest current view and where it remains uncertain. Cite important external research near the claim and include direct sources.
+
+Then read [the core value journey guide](references/core-value-journey.md) and [the adaptive discovery artifact guide](references/discovery-artifacts.md). Create the smallest useful visual and presentation package from the final discovery map.
+
+Write `docs/discovery/<product-slug>-assets/index.md` as the entry point. Link the brief, visuals, and presentation. Explain which artifact answers which reader question.
+
+Always create an editable overview flowchart of the core value journey. Add focused flowcharts only when a material branch, actor transition, outside dependency, approval, exception, or recovery path would make the overview hard to understand.
+
+Possible supporting views include:
+
+- actor and ecosystem relationships
+- the opportunity space
+- domain information and state
+- external dependencies and system context
+- critical assumptions and learning priorities
+
+Do not create every supporting view. Combine views when the product is simple. Split the core value journey into an overview plus linked phase or branch flows when a complex product cannot remain clear in one diagram. Split supporting views by actor group, domain, or responsibility boundary only when needed. Keep every visual at the discovery level. Do not present a system-context sketch as selected architecture.
+
+Store visual assets under:
+
+`docs/discovery/<product-slug>-assets/visuals/`
+
+Create a product discovery briefing under:
+
+`docs/discovery/<product-slug>-assets/presentations/`
+
+Use a current supplied or repository presentation template when one is clearly intended. Otherwise use a neutral 16:9 enterprise style. Use only claims supported by the brief, notebook, and cited research. Put sources in speaker notes or associated source blocks.
+
+Render and inspect every published diagram and finished slide. If rendering or PowerPoint authoring is unavailable, publish editable diagram source and a complete `.slides.md` storyboard, state the exact limitation, and do not claim rendered or PowerPoint assets exist.
 
 Finish the session with a short synthesis covering:
 
 - the target opportunity
 - the current product thesis
-- the defining value loop
+- the core value journey and the responsibility the product accepts
 - important dependencies
 - the assumptions most likely to disprove the product idea
 - the recommended next learning move
-- the notebook and brief paths
+- the notebook, brief, visual, and presentation paths
 
 If the participant pauses before completion, update the notebook and return only the current position, what remains open, the recommended next phase, and the notebook path.
 
