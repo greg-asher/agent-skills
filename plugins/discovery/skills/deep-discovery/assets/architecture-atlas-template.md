@@ -2,7 +2,7 @@
 
 ## How to Use This Atlas
 
-Explain the levels and the questions each view answers. Link to the canonical discovery report and application model.
+Explain the levels and the questions each view answers. Link to the canonical discovery report and discovery knowledge base. State that the atlas is a projection of `knowledge-base/application-model.json` and identify the model IDs used by each view.
 
 ## Application Overview
 
@@ -30,6 +30,6 @@ Link AST-backed module or repository views that help an engineer move from archi
 
 ## Evidence and Limits
 
-Explain which relationships were observed, demonstrated by tests, established statically, declared, inferred, or left unknown.
+Explain which relationships were observed, demonstrated by tests, established statically, declared, inferred, or left unknown. Link the evidence catalog, analysis methods, source coverage, parse failures, and material limits rather than repeating them incompletely.
 
 Omit empty sections. Split a view when it becomes hard to read. Link every focused view back to its parent context.

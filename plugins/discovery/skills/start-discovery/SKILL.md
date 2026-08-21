@@ -34,7 +34,17 @@ In every question, response, and artifact:
 
 Remain in the main session. Lead the conversation, phase changes, synthesis, notebook, and final brief. Use subagents only for focused factual research. Do not give the whole skill or participant conversation to a subagent.
 
-Ask one meaningful question or one closely related pair at a time. Follow important answers before returning to the internal map. Do not show a questionnaire, numbered decision tree, canvas, or repeated recommendation block.
+Run an interview, not a turn-by-turn Q&A. Use fewer, richer turns that give the participant enough context and room to think aloud. Follow important answers before returning to the internal map. Do not show a questionnaire, numbered decision tree, canvas, or repeated recommendation block.
+
+Shape each substantial interview turn around one learning objective:
+
+1. Briefly play back the relevant understanding, tension, or uncertainty.
+2. Explain why exploring it matters now.
+3. Offer one broad invitation that can elicit a story, explanation, or point of view.
+4. Add two to four related prompts that suggest useful angles, examples, contrasts, or edge cases.
+5. Invite the participant to answer freely, skip prompts, correct the framing, and go wherever the story is most useful.
+
+Present the invitation and prompts as a natural spoken passage, not a numbered list the participant must complete. Keep every prompt within the same topic. A participant using voice mode should be able to respond with a several-minute narrative without having to remember a form. Treat partial answers, digressions, and corrections as useful evidence. Do not repeat an unanswered prompt unless it remains important after synthesis.
 
 Shift stance as understanding grows:
 
@@ -50,7 +60,7 @@ If an existing discovery notebook is supplied or obvious, read and resume it. Ot
 
 `.discovery/<product-slug>/notebook.md`
 
-Use [the notebook template](assets/discovery-notebook-template.md). Keep it current instead of adding an endless history. Replace outdated interpretations. Keep only decisions and changes that still matter. Record the current phase and the best next question so another session can resume naturally.
+Use [the notebook template](assets/discovery-notebook-template.md). Keep it current instead of adding an endless history. Replace outdated interpretations. Keep only decisions and changes that still matter. Record the current phase and the best next interview opening so another session can resume naturally.
 
 Maintain this discovery map:
 
@@ -93,14 +103,16 @@ If internet or research tools are unavailable, add the question to the research 
 
 ### Converse
 
-Open with one strong invitation. Prefer concrete stories and past behavior:
+Open with enough context for the participant to understand the topic and then give one strong, open invitation. Add a small cluster of optional prompts that helps them tell a complete story. Prefer concrete stories and past behavior:
 
 - “Tell me about the last time this happened.”
 - “What happened next?”
 - “Who else became involved?”
 - “What did you do instead?”
 
-Ask for descriptions, examples, clarification, and explanations. Record new research questions without interrupting a useful story. Pause during a phase only when a factual unknown blocks progress.
+For example: “I want to understand the last real episode before we talk about a product. Walk me through what triggered it, who became involved, where the work became difficult, and what happened in the end. Use whichever parts are useful, and correct any assumptions in that framing.”
+
+Ask for descriptions, examples, clarification, comparisons, and explanations. Do not require the participant to answer every prompt. Record new research questions without interrupting a useful story. Pause during a phase only when a factual unknown blocks progress.
 
 ### Consolidate and research at the exit
 
@@ -109,7 +121,7 @@ Ask for descriptions, examples, clarification, and explanations. Record new rese
 3. Identify what changed, what remains uncertain, and what the next phase needs.
 4. Research only questions that could reshape the synthesis or unlock better next questions.
 5. Update the notebook.
-6. Give a concise playback and transition in plain language.
+6. Give a concise playback and transition in plain language. Use the transition to frame the next interview topic, not merely to append another question.
 
 Use research to improve the next question. Do not give a separate research presentation. If research only confirms the current view, record it and move on.
 

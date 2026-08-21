@@ -114,6 +114,72 @@ def validate_evals(plugin_name: str, skill_name: str) -> None:
                 fail(f"Missing evaluation fixture: {test_dir.relative_to(ROOT)}/{relative}")
 
 
+def validate_discovery_contracts() -> None:
+    discovery = ROOT / "plugins" / "discovery" / "skills"
+    start_text = (discovery / "start-discovery" / "SKILL.md").read_text()
+    for required_text in (
+        "Run an interview, not a turn-by-turn Q&A.",
+        "Add two to four related prompts",
+        "participant using voice mode",
+    ):
+        if required_text not in start_text:
+            fail(f"Start Discovery interview contract is missing: {required_text}")
+    if "Ask one meaningful question or one closely related pair at a time." in start_text:
+        fail("Start Discovery reverted to a single-question interaction contract")
+
+    notebook_text = (
+        discovery
+        / "start-discovery"
+        / "assets"
+        / "discovery-notebook-template.md"
+    ).read_text()
+    if "## Next Interview Opening" not in notebook_text:
+        fail("Start Discovery notebook must preserve the next interview opening")
+
+    schema_path = (
+        discovery
+        / "deep-discovery"
+        / "assets"
+        / "application-model.schema.json"
+    )
+    schema = read_json(schema_path)
+    required_model_fields = {
+        "schemaVersion",
+        "generatedAt",
+        "application",
+        "scope",
+        "analysis",
+        "capabilities",
+        "nodes",
+        "relationships",
+        "flows",
+        "evidence",
+        "findings",
+        "unknowns",
+    }
+    if not required_model_fields.issubset(set(schema.get("required", []))):
+        fail("Deep Discovery application model is missing knowledge-base fields")
+
+    definitions = schema.get("$defs", {})
+    support_values = set(definitions.get("support", {}).get("enum", []))
+    expected_support = {
+        "observed-runtime",
+        "demonstrated-test",
+        "static-analysis",
+        "declared",
+        "inferred",
+        "unknown",
+    }
+    if support_values != expected_support:
+        fail("Deep Discovery application model has unexpected support values")
+
+    status_values = set(definitions.get("capabilityStatus", {}).get("enum", []))
+    if not {"observed-working", "partial", "documented-but-not-found"}.issubset(
+        status_values
+    ):
+        fail("Deep Discovery application model is missing capability statuses")
+
+
 def main() -> None:
     marketplace = read_json(ROOT / ".claude-plugin" / "marketplace.json")
     if marketplace.get("name") != "greg-asher-skills":
@@ -159,15 +225,7 @@ def main() -> None:
     if len(hashes) != 1:
         fail("Plain-language writing references differ between skills")
 
-    read_json(
-        ROOT
-        / "plugins"
-        / "discovery"
-        / "skills"
-        / "deep-discovery"
-        / "assets"
-        / "application-model.schema.json"
-    )
+    validate_discovery_contracts()
 
     kestrel_assign = ROOT / "plugins" / "kestrel" / "bin" / "kestrel-assign"
     if not kestrel_assign.is_file():

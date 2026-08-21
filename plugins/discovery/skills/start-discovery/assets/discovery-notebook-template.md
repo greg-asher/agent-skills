@@ -47,6 +47,10 @@ Distinguish researchable facts, participant decisions, and product hypotheses.
 
 Preserve only changes that remain useful for understanding how the product position evolved.
 
-## Next Conversational Opening
+## Next Interview Opening
 
-<One natural question or tightly related pair that resumes the discovery.>
+- Context to play back: <the relevant understanding, tension, or uncertainty>
+- Learning objective: <what this turn should help uncover>
+- Open invitation: <one broad invitation to a story, explanation, or point of view>
+- Optional prompts: <two to four related angles the participant may use or ignore>
+- Likely follow-ups: <only the branches worth following if they emerge>

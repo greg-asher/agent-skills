@@ -12,7 +12,7 @@ Use this as a learning progression, not a mandatory slide list.
 8. **Integrations and contracts:** external boundaries and failure behavior.
 9. **Build, run, and test:** supported paths and what each check establishes.
 10. **Capability state:** observed, tested, connected, declared, partial, stubbed, or absent behavior.
-11. **Repository navigation:** useful entry points and reading order by value path.
+11. **Repository navigation:** useful entry points and reading order by value path, linked to stable model and evidence IDs in the discovery knowledge base.
 12. **Ownership and operations:** maintainers, operating duties, and adjacent systems when known.
 13. **Open questions:** gaps that could materially change the model.
 
