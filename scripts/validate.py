@@ -17,7 +17,7 @@ EXPECTED_PLUGINS = {
     "discovery": {"deep-discovery", "start-discovery"},
     "design": {"change-design", "start-design"},
     "planning": {"create-issues", "create-product-brief"},
-    "execution": {"review-work", "work-on-issues"},
+    "execution": {"goal-mode", "review-work", "work-on-issues"},
     "kestrel": {"assign"},
 }
 EXPECTED_AGENTS = {

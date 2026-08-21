@@ -1,0 +1,4 @@
+interface:
+  display_name: "Goal Mode"
+  short_description: "Drive issue work to verified convergence"
+  default_prompt: "Use $goal-mode within Goal Mode to complete the approved issue plan through implementation and independent review until it reaches a verified end state."

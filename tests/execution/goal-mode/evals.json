@@ -1,0 +1,37 @@
+{
+  "skill_name": "goal-mode",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /execution:goal-mode on the attached approved issue plan and describe the first complete cycle.",
+      "expected_output": "Claude resolves the fixture queue as authoritative, records a concise surface ledger, follows work-on-issues for the Ready wave, then follows review-work for the resulting Implemented issues without waiting for another prompt. It preserves unrelated changes and does not push, open a pull request, or deploy.",
+      "files": [
+        "scenarios/approved-plan.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Use /execution:goal-mode on this reviewed wave. Decide whether the review notes may enter the issue graph.",
+      "expected_output": "Claude accepts the evidence-backed timeout regression because it maps to an acceptance condition and has a testable completion condition. It rejects the naming preference and speculative cache redesign. It creates no duplicate of the existing timeout repair issue and continues from the recomputed Ready frontier.",
+      "files": [
+        "scenarios/review-convergence.md"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Use /execution:goal-mode on this repeatedly failing repair history.",
+      "expected_output": "Claude recognizes that the same defect survived two attempted repairs, performs one focused root-cause pass across the recorded implementation and validation surfaces, and updates the completion condition. When the next repair still cannot progress because the required provider fixture is unavailable, it marks the affected work Blocked and reports the exact fixture dependency rather than looping or claiming completion.",
+      "files": [
+        "scenarios/stalled-repair.md"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Use /execution:goal-mode to assess whether this issue plan is complete.",
+      "expected_output": "Claude does not complete the goal merely because all original implementation issues were touched. It requires every in-scope issue to be Done, current passing evidence for each acceptance criterion, required validation, a final clean review, intact protected surfaces, and no unauthorized external action.",
+      "files": [
+        "scenarios/completion-gate.md"
+      ]
+    }
+  ]
+}

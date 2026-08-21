@@ -72,7 +72,7 @@
     {
       "name": "execution",
       "source": "./plugins/execution",
-      "description": "Coordinate dependency-aware implementation waves and independently review completed work for common and rare defects.",
+      "description": "Drive dependency-aware issue plans through coordinated implementation waves, independent defect review, and a convergent goal loop.",
       "author": {
         "name": "Greg Asher",
         "url": "https://github.com/greg-asher"
@@ -83,6 +83,7 @@
       "category": "productivity",
       "tags": [
         "issue-orchestration",
+        "goal-mode",
         "multi-agent-development",
         "code-review",
         "defect-discovery"

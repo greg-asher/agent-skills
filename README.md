@@ -37,10 +37,11 @@ Planning is convergent. It packages settled discovery and design decisions into 
 
 ## Execution plugin
 
-The `execution` plugin contains two skills and three model-neutral agents:
+The `execution` plugin contains three skills and three model-neutral agents:
 
 | Skill | Purpose |
 | --- | --- |
+| `/execution:goal-mode` | Drive an approved issue plan through alternating implementation and independent review until it reaches a verified end state or a proven blocker. |
 | `/execution:work-on-issues` | Select and implement one coherent wave from the ready issue frontier, update the graph, and create one local integration commit. |
 | `/execution:review-work` | Independently review implemented issues, create repair issues for confirmed defects, and gate completion. |
 
@@ -142,6 +143,12 @@ Implement one coherent ready wave:
 /execution:work-on-issues Work the current ready frontier. Keep coupled contract changes sequential.
 ```
 
+Complete an approved issue plan through a durable goal:
+
+```text
+/goal Use /execution:goal-mode to complete the approved local issue plan. Preserve unrelated changes and stop only at a verified end state or proven blocker.
+```
+
 Review the implemented wave:
 
 ```text
@@ -178,12 +185,18 @@ Both skills use the included plain-language writing rules. Reports lead with the
 
 `review-work` reviews the wave without modifying product code. It advances clean issues to `Done`, creates repair issues for confirmed defects, updates blocking relationships, and makes a separate local issue-state commit when local issue files change.
 
+`goal-mode` keeps a compact ledger of authoritative, implementation, validation, protected, external, and evidence surfaces. It alternates the two execution workflows until all in-scope issues are `Done` or the remaining work is genuinely blocked. It does not authorize pushes, pull requests, deployments, or other external mutations.
+
 The complete lifecycle is:
 
 ```text
-Discover -> Design -> Plan -> Work on Issues -> Review Work
-                                      ^              |
-                                      |--- defects ---|
+Discover -> Design -> Plan -> Goal Mode
+                              |        |
+                              v        |
+                       Work on Issues  |
+                              |        |
+                              v        |
+                         Review Work --+
 ```
 
 `kestrel:assign` writes the submitted job input and Kestrel's durable output under the plugin data directory. Kestrel implements and validates the task in a session-isolated managed worktree; the skill reports the terminal result, identifiers, artifact paths, and replay command.
@@ -210,6 +223,7 @@ plugins/planning/                     Installed Claude Code plugin
   skills/create-issues/
 plugins/execution/                    Installed Claude Code plugin
   .claude-plugin/plugin.json
+  skills/goal-mode/
   skills/work-on-issues/
   skills/review-work/
   agents/issue-worker.md

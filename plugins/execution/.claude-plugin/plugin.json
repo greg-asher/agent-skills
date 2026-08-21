@@ -1,6 +1,6 @@
 {
   "name": "execution",
-  "description": "Work a dependency-aware issue graph through coordinated implementation waves and independent defect review.",
+  "description": "Drive dependency-aware issue plans to verified completion through coordinated implementation waves, independent defect review, and a convergent goal loop.",
   "author": {
     "name": "Greg Asher",
     "url": "https://github.com/greg-asher"
@@ -10,6 +10,7 @@
   "license": "MIT",
   "keywords": [
     "issue-orchestration",
+    "goal-mode",
     "multi-agent-implementation",
     "code-review",
     "defect-discovery"
