@@ -1,0 +1,21 @@
+{
+  "skill_name": "blast-radius",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /analysis:blast-radius to assess renaming InvoiceCreated to BillingEvent across this monorepo. Do not implement it.",
+      "expected_output": "Claude resolves the intended contract and protected behavior, checks workspace-model freshness, traces the exported type through API publishers, worker consumers, billing handlers, queue configuration, fixtures, tests, and deployment/runtime surfaces, and separates static reachability from runtime evidence. It writes schema-valid JSON and a readable report with readiness, direct and indirect impacts, unknowns, required validation, and a minimal context pack. It does not edit product code or execute the change.",
+      "files": [
+        "scenarios/shared-event-refactor.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run /analysis:blast-radius for this worker extraction even though the saved workspace map does not cover production scheduling.",
+      "expected_output": "Claude does not manufacture a complete boundary. It refreshes reachable local evidence, marks the result not-ready because the production scheduler and ownership contract remain outside coverage, omits or constrains the context pack, and names the smallest evidence needed to reassess readiness. It reports rather than enforcing the result.",
+      "files": [
+        "scenarios/missing-runtime-boundary.md"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "skill_name": "teach-me",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /analysis:teach-me to help me understand the event pipeline before I modify retries.",
+      "expected_output": "Claude checks workspace-model freshness and the workspace-scoped learner model, skips authentication concepts already demonstrated, creates a compact adaptive path through event purpose, publisher, queue, consumer, retry ownership, state, and failure behavior, then teaches one coherent concept with exact evidence and one application check. It does not dump a static curriculum or require Map Workspace first.",
+      "files": [
+        "scenarios/adaptive-event-lesson.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Use /analysis:teach-me to correct the learner model: I do understand queue ownership; the Game Show question combined application and platform retries.",
+      "expected_output": "Claude shows the current signal and evidence, accepts the correction without defensiveness, marks conflicting evidence disputed rather than preserving an incorrect deficit, records the user correction and reason in the workspace learner model, and explains what remains genuinely unknown. It does not transfer the signal outside the workspace.",
+      "files": [
+        "scenarios/correct-learner-signal.md"
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Agent Skills
 
-Reusable Claude Code skills for discovery, solution design, implementation planning, coordinated execution, independent review, and Kestrel delegation.
+Reusable Claude Code skills for workspace analysis, discovery, solution design, implementation planning, coordinated execution, independent review, and Kestrel delegation.
 
 ## Discovery plugin
 
@@ -59,6 +59,20 @@ The skill accepts an implementation issue or a direct task. It submits Kestrel's
 
 It requires a locally installed Kestrel CLI with `kestrel job run` support.
 
+## Analysis plugin
+
+The `analysis` plugin contains five skills:
+
+| Skill | Purpose |
+| --- | --- |
+| `/analysis:map-workspace` | Build a revision-scoped evidence model of workspace boundaries, components, interfaces, dependencies, runtime services, state, configuration, tests, and unknowns. |
+| `/analysis:blast-radius` | Trace the direct and indirect impact of one proposed change and report execution readiness without modifying product code or enforcing execution. |
+| `/analysis:narrate` | Turn the latest completed run in the current thread into a short, engaging account of the objective, turning points, changes, proof, and unresolved work. |
+| `/analysis:game-show` | Host live adaptive repository trivia one grounded question at a time, with optional topic, difficulty, tone, and round-length instructions. |
+| `/analysis:teach-me` | Teach the workspace through an adaptive path based on current evidence, the user's goal, recent work, and workspace-scoped learner history. |
+
+Analysis keeps workspace evidence, agent activity, and learner history distinct but compatible. The human-facing skills can run independently. Game Show does not require Narrate, and Teach Me owns direct correction of inaccurate learner signals.
+
 ## Install in Claude Code
 
 Add this repository as a marketplace:
@@ -95,6 +109,12 @@ Install the Kestrel plugin:
 
 ```text
 /plugin install kestrel@greg-asher-skills
+```
+
+Install the Analysis plugin:
+
+```text
+/plugin install analysis@greg-asher-skills
 ```
 
 The plugins use Git commit versions. Updating the marketplace and a plugin picks up the latest published commit.
@@ -161,6 +181,36 @@ Assign one of those issues to Kestrel:
 /kestrel:assign Complete docs/planning/scout/issues/02-qualify-opportunity.md
 ```
 
+Build or refresh the workspace model:
+
+```text
+/analysis:map-workspace Focus on runtime, state, and cross-package boundaries.
+```
+
+Assess a proposed change before execution:
+
+```text
+/analysis:blast-radius Rename the shared InvoiceCreated event without changing external behavior.
+```
+
+Catch up after a long agent run:
+
+```text
+/analysis:narrate Emphasize the turning points and what the validation established.
+```
+
+Start an adaptive repository game at any time:
+
+```text
+/analysis:game-show Focus on queue ownership. Five difficult questions with a playful tone.
+```
+
+Learn a workspace or correct learner history:
+
+```text
+/analysis:teach-me Help me understand retry ownership before I change it.
+```
+
 Arguments are optional. Each skill can establish its starting context from the current session and workspace.
 
 ## What the skills produce
@@ -187,6 +237,16 @@ Both skills use the included plain-language writing rules. Reports lead with the
 
 `goal-mode` keeps a compact ledger of authoritative, implementation, validation, protected, external, and evidence surfaces. It alternates the two execution workflows until all in-scope issues are `Done` or the remaining work is genuinely blocked. It does not authorize pushes, pull requests, deployments, or other external mutations.
 
+`map-workspace` writes `.analysis/workspace-model.json` and `.analysis/workspace-map.md`. The machine-readable model uses stable evidence IDs and distinguishes observation, tests, static analysis, declarations, inference, and unknowns. It records environment-variable names and roles, never values.
+
+`blast-radius` writes paired JSON and Markdown results under `.analysis/blast-radius/`. Each result states `ready`, `caution`, or `not-ready`, traces direct and indirect effects, names required validation, and includes a minimal task context pack only when the evidence supports one. Analysis reports readiness; a separate execution harness decides whether to enforce it.
+
+`narrate` returns its post in the current thread. It reconstructs the latest substantive run across long-running continuations, tool activity, delegated work, retries, failures, and validation. It does not save a file unless the user asks.
+
+`game-show` asks one live question at a time and updates `.analysis/learner-model.json` with concept-level evidence. It can run without recent activity or accept free-form topic, scope, difficulty, tone, and round-length instructions.
+
+`teach-me` creates a dynamic learning path and teaches one grounded concept at a time. Learner history persists across threads and tasks in the same workspace. Users inspect, dispute, correct, or remove inaccurate signals directly through Teach Me.
+
 The complete lifecycle is:
 
 ```text
@@ -200,6 +260,8 @@ Discover -> Design -> Plan -> Goal Mode
 ```
 
 `kestrel:assign` writes the submitted job input and Kestrel's durable output under the plugin data directory. Kestrel implements and validates the task in a session-isolated managed worktree; the skill reports the terminal result, identifiers, artifact paths, and replay command.
+
+Analysis sits beside the lifecycle. Its workspace model can ground discovery, design, planning, and execution, while Narrate, Game Show, and Teach Me turn work from any phase into durable human understanding.
 
 ## Repository structure
 
@@ -233,12 +295,23 @@ plugins/kestrel/                      Installed Claude Code plugin
   .claude-plugin/plugin.json
   bin/kestrel-assign
   skills/assign/
+plugins/analysis/                     Claude Code and Codex plugin
+  .claude-plugin/plugin.json
+  .codex-plugin/plugin.json
+  assets/                             Workspace, run, learner, and blast-radius schemas
+  references/                         Shared evidence, run, and learning contracts
+  skills/map-workspace/
+  skills/blast-radius/
+  skills/narrate/
+  skills/game-show/
+  skills/teach-me/
 tests/discovery/                      Evaluation prompts and fixtures
   source-corpus/                      Dependency-free corpus and OOXML extractor tests
 tests/design/                         Design evaluation prompts and scenarios
 tests/planning/                       Planning evaluation prompts and scenarios
 tests/execution/                      Execution evaluation prompts and scenarios
 tests/kestrel/                        Kestrel assignment evaluation and wrapper contract test
+tests/analysis/                       Analysis evaluation prompts and scenarios
 scripts/validate.py                   Dependency-free repository validation
 ```
 
@@ -261,6 +334,7 @@ claude plugin validate ./plugins/design
 claude plugin validate ./plugins/planning
 claude plugin validate ./plugins/execution
 claude plugin validate ./plugins/kestrel
+claude plugin validate ./plugins/analysis
 ```
 
 Test the Kestrel job wrapper without starting a live Kestrel run:
@@ -283,11 +357,12 @@ claude --plugin-dir ./plugins/design
 claude --plugin-dir ./plugins/planning
 claude --plugin-dir ./plugins/execution
 claude --plugin-dir ./plugins/kestrel
+claude --plugin-dir ./plugins/analysis
 ```
 
 ## Security
 
-The plugins include no hooks, Model Context Protocol servers, or preapproved tools. Discovery includes a model-neutral source investigator and a dependency-free Office extractor that rejects unsafe archive paths and bounded-expansion limits. Execution includes model-neutral packaged agents; the reviewer agents cannot write files. The Kestrel plugin includes one executable wrapper that invokes a locally installed `kestrel job run`. It requests a managed worktree and does not merge or publish by default. Review skill and agent instructions before installation, as you would with any agent extension.
+The plugins include no hooks, Model Context Protocol servers, or preapproved tools. Discovery includes a model-neutral source investigator and a dependency-free Office extractor that rejects unsafe archive paths and bounded-expansion limits. Analysis is read-only with respect to product code and external systems; its default writes are limited to `.analysis/` evidence and learner artifacts, and it records environment-variable names rather than values. Execution includes model-neutral packaged agents; the reviewer agents cannot write files. The Kestrel plugin includes one executable wrapper that invokes a locally installed `kestrel job run`. It requests a managed worktree and does not merge or publish by default. Review skill and agent instructions before installation, as you would with any agent extension.
 
 ## License
 

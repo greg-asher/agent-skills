@@ -1,0 +1,6 @@
+interface:
+  display_name: "Teach Me"
+  short_description: "Build an adaptive workspace learning path"
+  default_prompt: "Use $teach-me to teach me this workspace from grounded evidence and my learning history."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,29 @@
+{
+  "skill_name": "game-show",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /analysis:game-show. No Narrate run exists and I gave no topic.",
+      "expected_output": "Claude grounds a coherent introductory scope from the workspace model and learner history, announces it briefly, asks exactly one consequential repository question, does not reveal the answer, and waits. It does not require Narrate or dump a complete quiz.",
+      "files": [
+        "scenarios/anytime-round.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Use /analysis:game-show Focus on queue ownership and make it difficult. Five questions.",
+      "expected_output": "Claude treats queue ownership as the primary boundary, honors the requested difficulty and round length, asks only the first grounded question, and waits. After each later answer it evaluates against evidence, explains briefly, records a concept-level signal, and adapts the next question rather than presenting all five at once.",
+      "files": [
+        "scenarios/topic-round.md"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Continue Game Show with this answer and evidence conflict.",
+      "expected_output": "Claude recognizes that the question is ambiguous because code and deployment configuration disagree, does not record an incorrect learner result, explains the conflict, and replaces the question. For a genuinely incorrect later answer it records an emerging concept signal rather than permanent ignorance and routes durable disputes or corrections to Teach Me.",
+      "files": [
+        "scenarios/ambiguous-answer.md"
+      ]
+    }
+  ]
+}

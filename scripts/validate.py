@@ -14,6 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_PLUGINS = {
+    "analysis": {"blast-radius", "game-show", "map-workspace", "narrate", "teach-me"},
     "discovery": {"deep-discovery", "start-discovery"},
     "design": {"change-design", "start-design"},
     "planning": {"create-issues", "create-product-brief"},
@@ -54,7 +55,7 @@ def frontmatter(path: Path) -> dict[str, str]:
     return values
 
 
-def validate_skill(skill_dir: Path) -> None:
+def validate_skill(skill_dir: Path, require_claude_manual_invocation: bool = True) -> None:
     skill_file = skill_dir / "SKILL.md"
     if not skill_file.is_file():
         fail(f"Missing {skill_file.relative_to(ROOT)}")
@@ -64,8 +65,16 @@ def validate_skill(skill_dir: Path) -> None:
         fail(f"Skill name does not match directory: {skill_dir.relative_to(ROOT)}")
     if not metadata.get("description"):
         fail(f"Missing skill description: {skill_file.relative_to(ROOT)}")
-    if metadata.get("disable-model-invocation") != "true":
+    if (
+        require_claude_manual_invocation
+        and metadata.get("disable-model-invocation") != "true"
+    ):
         fail(f"Skill must remain manually invoked: {skill_file.relative_to(ROOT)}")
+    if not require_claude_manual_invocation and "disable-model-invocation" in metadata:
+        fail(
+            "Cross-platform Analysis skills must use agents/openai.yaml invocation policy: "
+            f"{skill_file.relative_to(ROOT)}"
+        )
     for model_key in ("model", "effort"):
         if model_key in metadata:
             fail(f"Skill must remain model-neutral: {skill_file.relative_to(ROOT)}")
@@ -182,6 +191,80 @@ def validate_discovery_contracts() -> None:
         fail("Deep Discovery application model is missing capability statuses")
 
 
+def validate_analysis_contracts() -> None:
+    analysis = ROOT / "plugins" / "analysis"
+    skills = analysis / "skills"
+
+    required_skill_text = {
+        "map-workspace": (
+            ".analysis/workspace-model.json",
+            "Static reachability does not prove runtime use.",
+        ),
+        "blast-radius": (
+            "A downstream execution harness decides whether to enforce",
+            "ready",
+            "caution",
+            "not-ready",
+        ),
+        "narrate": (
+            "latest completed substantive work run",
+            "full available thread",
+            "tool-call transcript",
+        ),
+        "game-show": (
+            "Ask exactly one question at a time",
+            "does not require Narrate",
+            ".analysis/learner-model.json",
+        ),
+        "teach-me": (
+            "Persist history only within the current workspace.",
+            "inspect, dispute, correct, or remove signals",
+        ),
+    }
+    for skill_name, required_phrases in required_skill_text.items():
+        text = (skills / skill_name / "SKILL.md").read_text()
+        for phrase in required_phrases:
+            if phrase not in text:
+                fail(f"Analysis {skill_name} contract is missing: {phrase}")
+
+    schemas = {
+        "workspace-model.schema.json": {
+            "workspace",
+            "analysis",
+            "boundaries",
+            "components",
+            "relationships",
+            "evidence",
+            "findings",
+            "unknowns",
+        },
+        "blast-radius.schema.json": {
+            "change",
+            "workspaceRevision",
+            "readiness",
+            "directImpacts",
+            "indirectImpacts",
+            "unknowns",
+            "requiredValidation",
+            "contextPack",
+        },
+        "learner-model.schema.json": {"workspace", "updatedAt", "concepts"},
+        "run-model.schema.json": {
+            "thread",
+            "objective",
+            "boundary",
+            "coverage",
+            "events",
+            "outcome",
+            "unresolved",
+        },
+    }
+    for filename, expected_required in schemas.items():
+        schema = read_json(analysis / "assets" / filename)
+        if not expected_required.issubset(set(schema.get("required", []))):
+            fail(f"Analysis schema is missing required fields: {filename}")
+
+
 def main() -> None:
     marketplace = read_json(ROOT / ".claude-plugin" / "marketplace.json")
     if marketplace.get("name") != "greg-asher-skills":
@@ -207,7 +290,10 @@ def main() -> None:
             fail(f"Unexpected {plugin_name} skill folders: {sorted(actual_skills)}")
 
         for skill_name in sorted(expected_skills):
-            validate_skill(skills / skill_name)
+            validate_skill(
+                skills / skill_name,
+                require_claude_manual_invocation=plugin_name != "analysis",
+            )
             validate_evals(plugin_name, skill_name)
             style_files.append(
                 skills / skill_name / "references" / "plain-language-writing.md"
@@ -236,6 +322,7 @@ def main() -> None:
         fail("Plain-language writing references differ between skills")
 
     validate_discovery_contracts()
+    validate_analysis_contracts()
 
     source_model = read_json(
         ROOT / "plugins" / "discovery" / "assets" / "source-model.schema.json"

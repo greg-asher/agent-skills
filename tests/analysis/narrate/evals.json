@@ -1,0 +1,21 @@
+{
+  "skill_name": "narrate",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /analysis:narrate immediately after the completed run in this thread record.",
+      "expected_output": "Claude identifies the latest substantive run from the initiating request through its terminal response, including continuations, one relevant failed approach, the delegated test investigation, implementation, and validation. It excludes the older cleanup run and the Narrate invocation. It writes a short engaging post led by the outcome, not a tool transcript or generic status list, and accurately states the unresolved deployment boundary.",
+      "files": [
+        "scenarios/long-run-thread.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Narrate the latest run, but the thread summary says some pre-compaction tool output is unavailable.",
+      "expected_output": "Claude reconstructs only supported turning points from the available summary, final diff, and validation artifacts; states the missing activity coverage; and does not invent commands, motivations, or intermediate results.",
+      "files": [
+        "scenarios/compacted-thread.md"
+      ]
+    }
+  ]
+}

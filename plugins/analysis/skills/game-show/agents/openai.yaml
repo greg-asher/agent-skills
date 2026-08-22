@@ -1,0 +1,6 @@
+interface:
+  display_name: "Game Show"
+  short_description: "Test repository knowledge through live trivia"
+  default_prompt: "Use $game-show to start a live adaptive repository trivia round."
+policy:
+  allow_implicit_invocation: false

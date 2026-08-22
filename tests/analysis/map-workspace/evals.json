@@ -1,0 +1,21 @@
+{
+  "skill_name": "map-workspace",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /analysis:map-workspace on this legacy monorepo before we attach an autonomous refactoring agent.",
+      "expected_output": "Claude binds the map to the current revision, inventories application-owned code and operating material, uses static analysis without claiming runtime activity, reconciles stale documentation with current configuration and tests, records environment-variable names without values, and writes schema-valid .analysis/workspace-model.json plus a compact workspace-map.md. It surfaces the implicit event and state boundaries and coverage limits without proposing a redesign or changing product code.",
+      "files": [
+        "scenarios/legacy-monorepo.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Refresh /analysis:map-workspace after this focused package change. A previous model exists.",
+      "expected_output": "Claude checks the saved model revision and covered sources, inspects the changed package and relationships that can be affected, preserves stable IDs and unaffected evidence, invalidates stale findings, and reports the exact refreshed and unreviewed surfaces instead of rebuilding claims from memory.",
+      "files": [
+        "scenarios/incremental-refresh.md"
+      ]
+    }
+  ]
+}

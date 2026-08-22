@@ -1,0 +1,3 @@
+# Long-running thread record
+
+An older completed objective removed unused Docker images. The latest run began when the user asked to split billing event handling from the API while preserving behavior. The agent mapped the publisher and consumers, tried a direct import move that broke worker fixtures, asked a bounded investigator to trace fixture ownership, introduced a shared contract, repaired consumers, and ran unit and integration tests. Tests passed. Deployment was explicitly out of scope and was not performed. The run spanned automatic continuations and ended with a verified local result.

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Narrate"
+  short_description: "Turn a long agent run into a clear story"
+  default_prompt: "Use $narrate to tell the story of the latest completed run in this task."
+policy:
+  allow_implicit_invocation: false

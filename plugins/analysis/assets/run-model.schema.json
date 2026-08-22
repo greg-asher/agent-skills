@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/greg-asher/agent-skills/analysis/run-model.schema.json",
+  "title": "Analysis Completed Run Model",
+  "type": "object",
+  "required": ["schemaVersion", "thread", "objective", "boundary", "coverage", "events", "outcome", "unresolved"],
+  "properties": {
+    "schemaVersion": {"type": "string"},
+    "thread": {"type": ["string", "null"]},
+    "objective": {"type": "string"},
+    "boundary": {
+      "type": "object",
+      "required": ["start", "end", "basis"],
+      "properties": {
+        "start": {"type": "string"},
+        "end": {"type": "string"},
+        "basis": {"type": "string"}
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["sources", "limitations"],
+      "properties": {
+        "sources": {"type": "array", "items": {"type": "string"}},
+        "limitations": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "summary", "support"],
+        "properties": {
+          "kind": {"type": "string", "enum": ["intent", "investigation", "decision", "action", "result", "validation", "failure", "blocker", "steering"]},
+          "summary": {"type": "string"},
+          "support": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "outcome": {"type": "string"},
+    "unresolved": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}

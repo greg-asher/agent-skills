@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/greg-asher/agent-skills/analysis/learner-model.schema.json",
+  "title": "Analysis Learner Model",
+  "type": "object",
+  "required": ["schemaVersion", "workspace", "updatedAt", "concepts"],
+  "properties": {
+    "schemaVersion": {"type": "string"},
+    "workspace": {"type": "string"},
+    "updatedAt": {"type": "string"},
+    "concepts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "state", "evidence"],
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "scope": {"type": "string"},
+          "state": {"type": "string", "enum": ["unassessed", "emerging", "practiced", "demonstrated", "disputed"]},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["source", "outcome", "recordedAt"],
+              "properties": {
+                "source": {"type": "string", "enum": ["game-show", "teach-me", "observed-work", "user-correction"]},
+                "outcome": {"type": "string", "enum": ["correct", "partial", "incorrect", "uncertain", "skipped", "ambiguous", "corrected", "removed"]},
+                "recordedAt": {"type": "string"},
+                "note": {"type": "string"},
+                "workspaceEvidenceIds": {"type": "array", "items": {"type": "string"}}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

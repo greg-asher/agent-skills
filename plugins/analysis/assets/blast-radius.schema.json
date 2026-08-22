@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/greg-asher/agent-skills/analysis/blast-radius.schema.json",
+  "title": "Analysis Blast Radius",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "change", "workspaceRevision", "readiness", "directImpacts", "indirectImpacts", "unknowns", "requiredValidation", "contextPack"],
+  "properties": {
+    "schemaVersion": {"type": "string"},
+    "generatedAt": {"type": "string"},
+    "change": {
+      "type": "object",
+      "required": ["intent", "inScope", "protected"],
+      "properties": {
+        "intent": {"type": "string"},
+        "inScope": {"type": "array", "items": {"type": "string"}},
+        "protected": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "workspaceRevision": {"type": ["string", "null"]},
+    "readiness": {"type": "string", "enum": ["ready", "caution", "not-ready"]},
+    "readinessReason": {"type": "string"},
+    "directImpacts": {"type": "array", "items": {"$ref": "#/$defs/impact"}},
+    "indirectImpacts": {"type": "array", "items": {"$ref": "#/$defs/impact"}},
+    "unknowns": {"type": "array", "items": {"type": "string"}},
+    "requiredValidation": {"type": "array", "items": {"type": "string"}},
+    "contextPack": {
+      "type": "object",
+      "required": ["objective", "evidenceIds", "relevantPaths", "interfaces", "runtimeConstraints", "allowedActions", "prohibitedActions"],
+      "properties": {
+        "objective": {"type": "string"},
+        "evidenceIds": {"type": "array", "items": {"type": "string"}},
+        "relevantPaths": {"type": "array", "items": {"type": "string"}},
+        "interfaces": {"type": "array", "items": {"type": "string"}},
+        "runtimeConstraints": {"type": "array", "items": {"type": "string"}},
+        "allowedActions": {"type": "array", "items": {"type": "string"}},
+        "prohibitedActions": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  },
+  "$defs": {
+    "impact": {
+      "type": "object",
+      "required": ["surface", "effect", "evidenceIds"],
+      "properties": {
+        "surface": {"type": "string"},
+        "effect": {"type": "string"},
+        "evidenceIds": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

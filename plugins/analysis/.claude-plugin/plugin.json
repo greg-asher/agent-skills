@@ -1,0 +1,20 @@
+{
+  "name": "analysis",
+  "version": "0.1.0",
+  "description": "Ground agent execution in workspace evidence and turn agent activity into durable human understanding through mapping, blast-radius analysis, narration, adaptive trivia, and teaching.",
+  "author": {
+    "name": "Greg Asher",
+    "url": "https://github.com/greg-asher"
+  },
+  "homepage": "https://github.com/greg-asher/agent-skills",
+  "repository": "https://github.com/greg-asher/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "workspace-analysis",
+    "context-engineering",
+    "blast-radius",
+    "agent-narration",
+    "adaptive-learning",
+    "repository-trivia"
+  ]
+}

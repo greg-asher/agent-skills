@@ -107,6 +107,27 @@
         "autonomous-development",
         "managed-worktrees"
       ]
+    },
+    {
+      "name": "analysis",
+      "source": "./plugins/analysis",
+      "description": "Ground agent execution in workspace evidence and turn agent activity into durable human understanding through mapping, blast-radius analysis, narration, adaptive trivia, and teaching.",
+      "author": {
+        "name": "Greg Asher",
+        "url": "https://github.com/greg-asher"
+      },
+      "homepage": "https://github.com/greg-asher/agent-skills",
+      "repository": "https://github.com/greg-asher/agent-skills",
+      "license": "MIT",
+      "category": "productivity",
+      "tags": [
+        "workspace-analysis",
+        "context-engineering",
+        "blast-radius",
+        "agent-narration",
+        "adaptive-learning",
+        "repository-trivia"
+      ]
     }
   ]
 }

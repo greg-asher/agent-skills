@@ -1,0 +1,6 @@
+interface:
+  display_name: "Map Workspace"
+  short_description: "Build a grounded workspace model"
+  default_prompt: "Use $map-workspace to build a revision-scoped evidence map of this workspace."
+policy:
+  allow_implicit_invocation: false
