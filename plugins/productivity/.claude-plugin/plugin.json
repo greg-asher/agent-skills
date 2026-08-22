@@ -1,0 +1,17 @@
+{
+  "name": "productivity",
+  "version": "0.1.0",
+  "description": "Create focused collaboration artifacts for knowledge that must come from another person.",
+  "author": {
+    "name": "Greg Asher",
+    "url": "https://github.com/greg-asher"
+  },
+  "homepage": "https://github.com/greg-asher/agent-skills",
+  "repository": "https://github.com/greg-asher/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "questionnaires",
+    "external-knowledge",
+    "decision-support"
+  ]
+}

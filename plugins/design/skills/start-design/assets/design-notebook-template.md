@@ -24,6 +24,8 @@ Keep only the views that help the current design.
 
 ### Domain responsibilities and boundaries
 
+Record stable terms, relationships, invariants, and unresolved conceptual conflicts alongside the responsibilities they shape.
+
 ### Information and state
 
 ### External systems and integrations
@@ -47,6 +49,13 @@ Record the question, finding or result, source, design effect, and remaining unc
 ## Active Design Frontier
 
 List only consequential questions whose prerequisites are understood.
+
+## Decision Map
+
+- Status: <not needed | active | complete>
+- Path: <local map path or none>
+- Destination: <what must be settled before ordinary design can continue>
+- Return condition: <what becomes possible when the map completes>
 
 ## Best Next Move
 

@@ -18,6 +18,10 @@ Keep this work separate from Product Brief writing, architecture selection, road
 
 Read [the plain-language writing guide](references/plain-language-writing.md) before writing or asking questions. Put the main point first. Use short sentences, active voice, familiar words, and consistent terms. Ask natural questions. Name the responsible actor when it matters. Separate source claims, participant reports, research, inference, and unknowns. Remove filler and ceremony.
 
+Read and apply [the domain-modeling discipline](../../references/domain-modeling.md) when language, relationships, invariants, scenarios, or supplied evidence expose a material conceptual conflict. Keep resolved domain state in the discovery notebook; do not create a separate glossary by default.
+
+Read [the local decision-map protocol](../../references/decision-map.md). Keep the ordinary notebook frontier by default. Escalate only when consequential uncertainty must remain coherent across sessions, contains real blocking relationships, supports independent work, or no longer fits a compact frontier. The decision map remains part of Discovery and returns its resolutions to this notebook.
+
 ## Lead the discovery
 
 Remain in the main session. Own the source intake, conversation, phase changes, synthesis, notebook, and final brief. Use the packaged `source-investigator` agent only for bounded local source groups. Use research agents only for bounded factual questions. Do not hand the participant conversation to an agent.

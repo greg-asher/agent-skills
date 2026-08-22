@@ -10,6 +10,18 @@ This guide has three parts:
 
 Apply the core rules to every document. Then apply the rules for the document's purpose.
 
+## Repair a conversation that did not land
+
+When the user says `wait, what?`, says the explanation did not land, or clearly loses the thread, repair the explanation before continuing the workflow:
+
+1. Name the subject in ordinary language.
+2. Restore only the prior context needed to understand the current point.
+3. Explain the cause and consequence concretely.
+4. Introduce the approved project term after its ordinary-language meaning. Do not assume the glossary is already understood.
+5. End with the immediate decision, question, or next action.
+
+Do not restart the workflow, repeat the complete history, create a repair artifact, or merely shorten the failed explanation.
+
 ## Choose the writing mode
 
 Use **technical and procedural writing** when the reader must:

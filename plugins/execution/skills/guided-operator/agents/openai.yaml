@@ -1,0 +1,6 @@
+interface:
+  display_name: "Guided Operator"
+  short_description: "Prepare a safe human-operated runbook"
+  default_prompt: "Use $guided-operator to prepare a safe, resumable runbook for this human-authorized operation without performing it automatically."
+policy:
+  allow_implicit_invocation: false

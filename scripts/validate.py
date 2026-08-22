@@ -18,8 +18,9 @@ EXPECTED_PLUGINS = {
     "discovery": {"deep-discovery", "start-discovery"},
     "design": {"change-design", "start-design"},
     "planning": {"create-issues", "create-product-brief"},
-    "execution": {"goal-mode", "review-work", "work-on-issues"},
+    "execution": {"goal-mode", "guided-operator", "review-work", "work-on-issues"},
     "kestrel": {"assign"},
+    "productivity": {"to-questionnaire"},
 }
 EXPECTED_AGENTS = {
     "discovery": {"source-investigator"},
@@ -219,6 +220,8 @@ def validate_analysis_contracts() -> None:
         "teach-me": (
             "Persist history only within the current workspace.",
             "inspect, dispute, correct, or remove signals",
+            "Persist a learning goal only when the user intends to learn across sessions.",
+            ".analysis/learning/<slug>-reference.md",
         ),
     }
     for skill_name, required_phrases in required_skill_text.items():
@@ -263,6 +266,88 @@ def validate_analysis_contracts() -> None:
         schema = read_json(analysis / "assets" / filename)
         if not expected_required.issubset(set(schema.get("required", []))):
             fail(f"Analysis schema is missing required fields: {filename}")
+
+    learner_schema = read_json(analysis / "assets" / "learner-model.schema.json")
+    learning_goals = learner_schema.get("properties", {}).get("learningGoals", {})
+    goal_items = learning_goals.get("items", {})
+    if not {"purpose", "desiredCapability", "status", "updatedAt"}.issubset(
+        set(goal_items.get("required", []))
+    ):
+        fail("Analysis learner model is missing optional learning-goal fields")
+
+
+def validate_supporting_contracts() -> None:
+    domain_paths = [
+        ROOT / "plugins" / plugin / "references" / "domain-modeling.md"
+        for plugin in ("discovery", "design")
+    ]
+    decision_paths = [
+        ROOT / "plugins" / plugin / "references" / "decision-map.md"
+        for plugin in ("discovery", "design")
+    ]
+    for label, paths in (
+        ("Domain-modeling", domain_paths),
+        ("Decision-map", decision_paths),
+    ):
+        if any(not path.is_file() for path in paths):
+            fail(f"{label} shared reference is missing")
+        hashes = {hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
+        if len(hashes) != 1:
+            fail(f"{label} references differ between Discovery and Design")
+
+    for plugin_name, skill_name in (
+        ("discovery", "start-discovery"),
+        ("design", "start-design"),
+        ("design", "change-design"),
+    ):
+        text = (
+            ROOT / "plugins" / plugin_name / "skills" / skill_name / "SKILL.md"
+        ).read_text()
+        if "../../references/decision-map.md" not in text:
+            fail(f"{skill_name} does not reference the decision-map protocol")
+
+    for plugin_name, skill_name in (
+        ("discovery", "start-discovery"),
+        ("discovery", "deep-discovery"),
+        ("design", "start-design"),
+        ("design", "change-design"),
+    ):
+        text = (
+            ROOT / "plugins" / plugin_name / "skills" / skill_name / "SKILL.md"
+        ).read_text()
+        if "../../references/domain-modeling.md" not in text:
+            fail(f"{skill_name} does not reference the domain-modeling discipline")
+
+    repair_phrase = "Repair a conversation that did not land"
+    for path in ROOT.glob("plugins/*/skills/*/references/plain-language-writing.md"):
+        if repair_phrase not in path.read_text():
+            fail(f"Conversation-repair contract is missing: {path.relative_to(ROOT)}")
+
+    for plugin_name, skill_name in (
+        ("productivity", "to-questionnaire"),
+        ("execution", "guided-operator"),
+    ):
+        metadata_path = (
+            ROOT
+            / "plugins"
+            / plugin_name
+            / "skills"
+            / skill_name
+            / "agents"
+            / "openai.yaml"
+        )
+        metadata = metadata_path.read_text()
+        if "allow_implicit_invocation: false" not in metadata:
+            fail(f"{skill_name} must disable implicit Codex invocation")
+
+    productivity_codex = read_json(
+        ROOT / "plugins" / "productivity" / ".codex-plugin" / "plugin.json"
+    )
+    if productivity_codex.get("skills") != "./skills/":
+        fail("Productivity Codex manifest does not expose its skills")
+
+    if not (ROOT / "THIRD_PARTY_NOTICES.md").is_file():
+        fail("Missing THIRD_PARTY_NOTICES.md")
 
 
 def main() -> None:
@@ -323,6 +408,7 @@ def main() -> None:
 
     validate_discovery_contracts()
     validate_analysis_contracts()
+    validate_supporting_contracts()
 
     source_model = read_json(
         ROOT / "plugins" / "discovery" / "assets" / "source-model.schema.json"

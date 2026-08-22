@@ -1,6 +1,6 @@
 # Agent Skills
 
-Reusable Claude Code skills for workspace analysis, discovery, solution design, implementation planning, coordinated execution, independent review, and Kestrel delegation.
+Reusable Claude Code and Codex skills for workspace analysis, discovery, solution design, implementation planning, coordinated execution, independent review, human collaboration, and Kestrel delegation.
 
 ## Discovery plugin
 
@@ -24,6 +24,8 @@ The `design` plugin contains two skills:
 
 Both design skills maintain a living design notebook. They adapt their next move to the current design question instead of following a fixed architecture checklist.
 
+Discovery and Design share a domain-modeling discipline for consequential language conflicts. Their ordinary notebook frontier can escalate to a local decision map when dependent uncertainty must remain coherent across sessions. Decision maps resolve planning uncertainty and return to the owning notebook; they do not create implementation issues.
+
 ## Planning plugin
 
 The `planning` plugin contains two skills:
@@ -37,15 +39,28 @@ Planning is convergent. It packages settled discovery and design decisions into 
 
 ## Execution plugin
 
-The `execution` plugin contains three skills and three model-neutral agents:
+The `execution` plugin contains four skills and three model-neutral agents:
 
 | Skill | Purpose |
 | --- | --- |
 | `/execution:goal-mode` | Drive an approved issue plan through alternating implementation and independent review until it reaches a verified end state or a proven blocker. |
 | `/execution:work-on-issues` | Select and implement one coherent wave from the ready issue frontier, update the graph, and create one local integration commit. |
 | `/execution:review-work` | Independently review implemented issues, create repair issues for confirmed defects, and gate completion. |
+| `/execution:guided-operator` | Prepare a safe, resumable runbook for a multi-stage operation that requires human authority or action. |
 
 Execution uses the tracker supplied for the invocation or Planning's local implementation queue. The active Claude Code model orchestrates the work, and packaged agents inherit that model.
+
+Guided Operator does not expand execution authority. It prepares local runbooks for credentials, dashboards, protected promotions, deployments, migrations, cutovers, and human verification, then leaves the owning issue blocked until fresh evidence proves the human action.
+
+## Productivity plugin
+
+The `productivity` plugin contains one skill:
+
+| Skill | Purpose |
+| --- | --- |
+| `/productivity:to-questionnaire` | Create a focused questionnaire for facts, constraints, preferences, or approvals held by another person. |
+
+The skill writes a local handoff artifact. It does not invent answers, contact the recipient, or mutate a tracker.
 
 ## Kestrel plugin
 
@@ -69,7 +84,7 @@ The `analysis` plugin contains five skills:
 | `/analysis:blast-radius` | Trace the direct and indirect impact of one proposed change and report execution readiness without modifying product code or enforcing execution. |
 | `/analysis:narrate` | Turn the latest completed run in the current thread into a short, engaging account of the objective, turning points, changes, proof, and unresolved work. |
 | `/analysis:game-show` | Host live adaptive repository trivia one grounded question at a time, with optional topic, difficulty, tone, and round-length instructions. |
-| `/analysis:teach-me` | Teach the workspace through an adaptive path based on current evidence, the user's goal, recent work, and workspace-scoped learner history. |
+| `/analysis:teach-me` | Teach the workspace through an adaptive path based on current evidence, optional multi-session goals, recent work, trusted sources, and workspace-scoped learner history. |
 
 Analysis keeps workspace evidence, agent activity, and learner history distinct but compatible. The human-facing skills can run independently. Game Show does not require Narrate, and Teach Me owns direct correction of inaccurate learner signals.
 
@@ -103,6 +118,12 @@ Install the execution plugin:
 
 ```text
 /plugin install execution@greg-asher-skills
+```
+
+Install the productivity plugin:
+
+```text
+/plugin install productivity@greg-asher-skills
 ```
 
 Install the Kestrel plugin:
@@ -169,10 +190,22 @@ Complete an approved issue plan through a durable goal:
 /goal Use /execution:goal-mode to complete the approved local issue plan. Preserve unrelated changes and stop only at a verified end state or proven blocker.
 ```
 
+Prepare a human-operated deployment or cutover:
+
+```text
+/execution:guided-operator Prepare the manual production promotion, deployment, verification, and rollback runbook.
+```
+
 Review the implemented wave:
 
 ```text
 /execution:review-work Review every Implemented issue that has not reached Done.
+```
+
+Collect missing knowledge from another person:
+
+```text
+/productivity:to-questionnaire Ask our platform owner for the blocking tenancy constraints and supporting standards.
 ```
 
 Assign one of those issues to Kestrel:
@@ -227,6 +260,8 @@ Both skills use the included plain-language writing rules. Reports lead with the
 
 `change-design` maintains `.design/<change>/notebook.md` and writes `docs/design/<change>-change-design.md`. Its report connects external research to the actual code paths, contracts, data, and system boundaries affected by the change.
 
+When a Discovery or Design frontier exceeds one coherent session, the owning skill may create `decisions/map.md` and numbered decision files beside its notebook. The map remains local, records decision dependencies and unresolved fog, and returns its settled results to the notebook before the lifecycle continues.
+
 `create-product-brief` writes `docs/planning/<initiative>-product-brief.md` unless another documentation convention is clear. It combines the product narrative with Business and Process, Technology, and People requirements.
 
 `create-issues` writes an implementation queue and individual issue files under `docs/planning/<initiative>/issues/`. It creates tracker issues only when explicitly requested.
@@ -237,6 +272,10 @@ Both skills use the included plain-language writing rules. Reports lead with the
 
 `goal-mode` keeps a compact ledger of authoritative, implementation, validation, protected, external, and evidence surfaces. It alternates the two execution workflows until all in-scope issues are `Done` or the remaining work is genuinely blocked. It does not authorize pushes, pull requests, deployments, or other external mutations.
 
+`guided-operator` writes `docs/operations/<operation>-runbook.md`. Each runbook separates agent preparation from human authority and includes prerequisites, stages, confirmations, stop conditions, rollback, evidence, resume checkpoints, and completion criteria. Optional helper scripts remain human-gated and never embed secrets.
+
+`to-questionnaire` writes `docs/questionnaires/<topic>.md` in repositories or `questionnaires/<topic>.md` in ordinary folders. It classifies requested answers, identifies blockers, requests primary evidence where useful, and leaves sending and answering to the people involved.
+
 `map-workspace` writes `.analysis/workspace-model.json` and `.analysis/workspace-map.md`. The machine-readable model uses stable evidence IDs and distinguishes observation, tests, static analysis, declarations, inference, and unknowns. It records environment-variable names and roles, never values.
 
 `blast-radius` writes paired JSON and Markdown results under `.analysis/blast-radius/`. Each result states `ready`, `caution`, or `not-ready`, traces direct and indirect effects, names required validation, and includes a minimal task context pack only when the evidence supports one. Analysis reports readiness; a separate execution harness decides whether to enforce it.
@@ -245,7 +284,7 @@ Both skills use the included plain-language writing rules. Reports lead with the
 
 `game-show` asks one live question at a time and updates `.analysis/learner-model.json` with concept-level evidence. It can run without recent activity or accept free-form topic, scope, difficulty, tone, and round-length instructions.
 
-`teach-me` creates a dynamic learning path and teaches one grounded concept at a time. Learner history persists across threads and tasks in the same workspace. Users inspect, dispute, correct, or remove inaccurate signals directly through Teach Me.
+`teach-me` creates a dynamic learning path and teaches one grounded concept at a time. Multi-session goals may persist beside learner history, while one-session requests remain conversational. Users inspect, dispute, correct, or remove inaccurate signals directly through Teach Me. Concise reference material appears under `.analysis/learning/` only when requested or justified by repeated use.
 
 The complete lifecycle is:
 
@@ -288,9 +327,14 @@ plugins/execution/                    Installed Claude Code plugin
   skills/goal-mode/
   skills/work-on-issues/
   skills/review-work/
+  skills/guided-operator/
   agents/issue-worker.md
   agents/change-reviewer.md
   agents/adversarial-reviewer.md
+plugins/productivity/                 Claude Code and Codex plugin
+  .claude-plugin/plugin.json
+  .codex-plugin/plugin.json
+  skills/to-questionnaire/
 plugins/kestrel/                      Installed Claude Code plugin
   .claude-plugin/plugin.json
   bin/kestrel-assign
@@ -310,6 +354,7 @@ tests/discovery/                      Evaluation prompts and fixtures
 tests/design/                         Design evaluation prompts and scenarios
 tests/planning/                       Planning evaluation prompts and scenarios
 tests/execution/                      Execution evaluation prompts and scenarios
+tests/productivity/                   Productivity evaluation prompts and scenarios
 tests/kestrel/                        Kestrel assignment evaluation and wrapper contract test
 tests/analysis/                       Analysis evaluation prompts and scenarios
 scripts/validate.py                   Dependency-free repository validation
@@ -333,6 +378,7 @@ claude plugin validate ./plugins/discovery
 claude plugin validate ./plugins/design
 claude plugin validate ./plugins/planning
 claude plugin validate ./plugins/execution
+claude plugin validate ./plugins/productivity
 claude plugin validate ./plugins/kestrel
 claude plugin validate ./plugins/analysis
 ```
@@ -356,13 +402,18 @@ claude --plugin-dir ./plugins/discovery
 claude --plugin-dir ./plugins/design
 claude --plugin-dir ./plugins/planning
 claude --plugin-dir ./plugins/execution
+claude --plugin-dir ./plugins/productivity
 claude --plugin-dir ./plugins/kestrel
 claude --plugin-dir ./plugins/analysis
 ```
 
 ## Security
 
-The plugins include no hooks, Model Context Protocol servers, or preapproved tools. Discovery includes a model-neutral source investigator and a dependency-free Office extractor that rejects unsafe archive paths and bounded-expansion limits. Analysis is read-only with respect to product code and external systems; its default writes are limited to `.analysis/` evidence and learner artifacts, and it records environment-variable names rather than values. Execution includes model-neutral packaged agents; the reviewer agents cannot write files. The Kestrel plugin includes one executable wrapper that invokes a locally installed `kestrel job run`. It requests a managed worktree and does not merge or publish by default. Review skill and agent instructions before installation, as you would with any agent extension.
+The plugins include no hooks, Model Context Protocol servers, or preapproved tools. Discovery includes a model-neutral source investigator and a dependency-free Office extractor that rejects unsafe archive paths and bounded-expansion limits. Analysis is read-only with respect to product code and external systems; its default writes are limited to `.analysis/` evidence, learning references, and learner artifacts, and it records environment-variable names rather than values. Execution includes model-neutral packaged agents; the reviewer agents cannot write files. Guided Operator writes local runbooks and optional deterministic helpers but does not perform the complete external operation or store secret values. Productivity writes local questionnaires and does not send them. The Kestrel plugin includes one executable wrapper that invokes a locally installed `kestrel job run`. It requests a managed worktree and does not merge or publish by default. Review skill and agent instructions before installation, as you would with any agent extension.
+
+## Acknowledgments
+
+The supporting disciplines added around this lifecycle were informed by Matt Pocock's [Skills for Real Engineers](https://github.com/mattpocock/skills). This repository adapts those ideas to its existing evidence, notebook, planning, authorization, and review contracts. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## License
 

@@ -72,7 +72,7 @@
     {
       "name": "execution",
       "source": "./plugins/execution",
-      "description": "Drive dependency-aware issue plans through coordinated implementation waves, independent defect review, and a convergent goal loop.",
+      "description": "Drive dependency-aware issue plans through coordinated implementation, independent review, convergent goals, and safe human-operation runbooks.",
       "author": {
         "name": "Greg Asher",
         "url": "https://github.com/greg-asher"
@@ -86,7 +86,26 @@
         "goal-mode",
         "multi-agent-development",
         "code-review",
-        "defect-discovery"
+        "defect-discovery",
+        "guided-operations"
+      ]
+    },
+    {
+      "name": "productivity",
+      "source": "./plugins/productivity",
+      "description": "Create focused collaboration artifacts for knowledge that must come from another person.",
+      "author": {
+        "name": "Greg Asher",
+        "url": "https://github.com/greg-asher"
+      },
+      "homepage": "https://github.com/greg-asher/agent-skills",
+      "repository": "https://github.com/greg-asher/agent-skills",
+      "license": "MIT",
+      "category": "productivity",
+      "tags": [
+        "questionnaires",
+        "external-knowledge",
+        "decision-support"
       ]
     },
     {
@@ -111,7 +130,7 @@
     {
       "name": "analysis",
       "source": "./plugins/analysis",
-      "description": "Ground agent execution in workspace evidence and turn agent activity into durable human understanding through mapping, blast-radius analysis, narration, adaptive trivia, and teaching.",
+      "description": "Ground agent execution in workspace evidence and build durable human understanding through mapping, blast-radius analysis, narration, adaptive trivia, and goal-aware teaching.",
       "author": {
         "name": "Greg Asher",
         "url": "https://github.com/greg-asher"

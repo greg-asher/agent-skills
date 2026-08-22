@@ -56,6 +56,38 @@
       "files": [
         "scenarios/implemented-app-in-folder.md"
       ]
+    },
+    {
+      "id": 8,
+      "prompt": "Use /start-discovery and resolve the conflicting use of account in this notebook before continuing.",
+      "expected_output": "Claude explains the material distinction between customer organization and individual login, tests it with a concrete access and billing scenario, checks supplied evidence, asks only for unresolved intent, and records the resolved terms, relationship, and invariant in the existing notebook. It does not create CONTEXT.md or offer an ADR for an ordinary terminology choice.",
+      "files": [
+        "scenarios/domain-term-collision.md"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Resume /start-discovery from this frontier and decide whether it needs a decision map.",
+      "expected_output": "Claude recognizes dependent decisions, parallel evidence work, and a multi-session destination, creates a local .discovery decision map with ready, blocked, fog, and return state, and keeps the files as decisions rather than implementation tickets. It preserves the ordinary lifecycle and will return resolutions to the discovery notebook. It would not escalate a compact same-session frontier merely because it has several questions.",
+      "files": [
+        "scenarios/dependent-decision-frontier.md"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Wait, what? I lost the thread. Re-explain the last discovery point.",
+      "expected_output": "Claude names the subject in ordinary language, restores only the relevant discovery context, explains the cause and consequence, introduces the canonical term after its meaning, and ends with the immediate discovery question. It does not restart discovery, repeat the full interview, or create an artifact.",
+      "files": [
+        "scenarios/conversation-repair.md"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Resume /start-discovery from this compact frontier and choose the next move.",
+      "expected_output": "Claude keeps the ordinary discovery notebook frontier because the closely related questions can be resolved in the current session and have no meaningful blocking graph or parallel work. It selects the next contextual interview turn and does not create a decisions directory merely because several questions remain.",
+      "files": [
+        "scenarios/compact-frontier.md"
+      ]
     }
   ]
 }

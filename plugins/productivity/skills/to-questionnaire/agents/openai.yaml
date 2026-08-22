@@ -1,0 +1,6 @@
+interface:
+  display_name: "To Questionnaire"
+  short_description: "Collect missing knowledge from the right person"
+  default_prompt: "Use $to-questionnaire to create a focused questionnaire for the person who holds the missing facts, constraints, preferences, or approval."
+policy:
+  allow_implicit_invocation: false

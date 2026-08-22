@@ -25,6 +25,30 @@
         "../../discovery/deep-discovery/fixtures/data-pipeline/db/schema.sql",
         "../../discovery/deep-discovery/fixtures/data-pipeline/config/schedule.yaml"
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "Use /change-design to reconcile this cancellation model with the implementation before choosing a seam.",
+      "expected_output": "Claude surfaces that participant language permits partial cancellation while current code cancels whole orders, uses a concrete mixed-line scenario, distinguishes product intent from implementation evidence, and records the resolved term, relationship, invariant, and remaining conflict in the design notebook. It keeps mechanisms in Design and does not create CONTEXT.md or an ADR without the full threshold.",
+      "files": [
+        "scenarios/domain-code-conflict.md"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Resume /change-design from this large dependent frontier and establish the next design move.",
+      "expected_output": "Claude escalates to a local .design decision map because the decisions span sessions, have blockers, and support independent research. It records the destination, frontier, blocked decisions, fog, linked decision files, and return condition. It resolves design decisions rather than implementation work and returns settled results to the design notebook before Product Brief creation.",
+      "files": [
+        "scenarios/dependent-change-frontier.md"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Wait, what? Explain that design point again without restarting.",
+      "expected_output": "Claude reconstructs the changed scenario and current seam in ordinary language, explains the causal effect, then names the approved design term and immediate choice. It does not replay the full investigation, restart Change Design, or create a separate explanation artifact.",
+      "files": [
+        "scenarios/conversation-repair.md"
+      ]
     }
   ]
 }

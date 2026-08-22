@@ -56,6 +56,15 @@ Track only branches that could materially change value, product responsibility, 
 
 ## Domain and System Context
 
+Record stable terms, relationships, invariants, and unresolved conceptual conflicts. Keep implementation mechanisms in later Design artifacts.
+
+## Decision Map
+
+- Status: <not needed | active | complete>
+- Path: <local map path or none>
+- Destination: <what must be settled before Discovery can continue normally>
+- Return condition: <what becomes possible when the map completes>
+
 ## Business and Technical Needs
 
 ## Dependencies

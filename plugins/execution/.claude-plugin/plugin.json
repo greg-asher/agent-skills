@@ -1,6 +1,6 @@
 {
   "name": "execution",
-  "description": "Drive dependency-aware issue plans to verified completion through coordinated implementation waves, independent defect review, and a convergent goal loop.",
+  "description": "Drive dependency-aware issue plans to verified completion through coordinated implementation, independent review, convergent goals, and safe human-operation runbooks.",
   "author": {
     "name": "Greg Asher",
     "url": "https://github.com/greg-asher"
@@ -13,6 +13,7 @@
     "goal-mode",
     "multi-agent-implementation",
     "code-review",
-    "defect-discovery"
+    "defect-discovery",
+    "guided-operations"
   ]
 }

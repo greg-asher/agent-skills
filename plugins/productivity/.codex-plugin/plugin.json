@@ -1,0 +1,19 @@
+{
+  "name": "productivity",
+  "version": "0.1.0",
+  "description": "Create focused collaboration artifacts for knowledge that must come from another person.",
+  "author": {
+    "name": "Greg Asher",
+    "url": "https://github.com/greg-asher"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Productivity",
+    "shortDescription": "Collect missing knowledge from the right person.",
+    "longDescription": "Productivity creates focused questionnaires for facts, constraints, preferences, and approvals that the current participant cannot provide.",
+    "developerName": "Greg Asher",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Help me collect the information or decision I need from another person."
+  }
+}

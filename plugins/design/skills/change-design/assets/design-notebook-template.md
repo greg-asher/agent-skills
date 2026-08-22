@@ -32,6 +32,10 @@ For each credible option, record where it attaches, what changes, tradeoffs, tem
 
 Describe the current-to-proposed change in behavior, structure, contracts, data, and responsibilities.
 
+## Domain Model
+
+Record stable terms, relationships, invariants, and unresolved conceptual conflicts that shape the proposed delta.
+
 ## Transition States
 
 Keep this section only when old and new behavior must coexist.
@@ -47,6 +51,13 @@ Record the question, finding or result, source, design effect, and remaining unc
 ## Active Change Frontier
 
 List only consequential questions whose prerequisites are understood.
+
+## Decision Map
+
+- Status: <not needed | active | complete>
+- Path: <local map path or none>
+- Destination: <what must be settled before ordinary change design can continue>
+- Return condition: <what becomes possible when the map completes>
 
 ## Best Next Move
 

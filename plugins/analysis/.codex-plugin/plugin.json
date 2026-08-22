@@ -1,7 +1,7 @@
 {
   "name": "analysis",
   "version": "0.1.0",
-  "description": "Ground agent execution in workspace evidence and turn agent activity into durable human understanding.",
+  "description": "Ground agent execution in workspace evidence and build durable human understanding.",
   "author": {
     "name": "Greg Asher",
     "url": "https://github.com/greg-asher"
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "Analysis",
     "shortDescription": "Map, explain, assess, and teach a workspace.",
-    "longDescription": "Analysis builds grounded workspace and blast-radius models, narrates long agent runs, hosts adaptive repository trivia, and teaches from workspace-scoped learner history.",
+    "longDescription": "Analysis builds grounded workspace and blast-radius models, narrates long agent runs, hosts adaptive repository trivia, and teaches from workspace-scoped goals and learner history.",
     "developerName": "Greg Asher",
     "category": "Productivity",
     "capabilities": [],

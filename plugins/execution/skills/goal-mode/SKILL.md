@@ -14,7 +14,7 @@ Treat this invocation context as the starting point:
 
 `$ARGUMENTS`
 
-Read [the plain-language writing guide](references/plain-language-writing.md). Read and follow the packaged [work-on-issues workflow](../work-on-issues/SKILL.md) and [review-work workflow](../review-work/SKILL.md) rather than recreating either workflow here.
+Read [the plain-language writing guide](references/plain-language-writing.md). Read and follow the packaged [work-on-issues workflow](../work-on-issues/SKILL.md) and [review-work workflow](../review-work/SKILL.md) rather than recreating either workflow here. Read the packaged [guided-operator workflow](../guided-operator/SKILL.md) only when completion reaches a multi-stage human gate with sensitive inputs, consequential mutations, recovery requirements, or human-assessed evidence.
 
 ## 1. Establish the contract
 
@@ -80,5 +80,7 @@ Complete the goal only when:
 Do not call unrelated baseline failures goal failures. Record them as out of scope unless the implementation caused or exposed them as blockers to an acceptance criterion.
 
 If completion requires missing information, permission, an external dependency, or a product or design decision, stop as blocked rather than guessing or weakening the goal.
+
+When the remaining work is a qualifying human operation, complete safe local preparation, write the Guided Operator runbook, link it from the owning issue, and record the exact evidence required to resume. Keep the issue `Blocked`. The runbook does not authorize the external action. On resume, recheck current external state and evidence before moving the issue to `Implemented` or Review Work.
 
 Finish with a short outcome-first report naming the issues resolved, surfaces changed, validation evidence, number of work-review cycles, and any exact blocker or authorized follow-up that remains.

@@ -8,6 +8,34 @@
     "schemaVersion": {"type": "string"},
     "workspace": {"type": "string"},
     "updatedAt": {"type": "string"},
+    "learningGoals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "purpose", "desiredCapability", "status", "updatedAt"],
+        "properties": {
+          "id": {"type": "string"},
+          "purpose": {"type": "string"},
+          "desiredCapability": {"type": "string"},
+          "status": {"type": "string", "enum": ["active", "paused", "completed"]},
+          "updatedAt": {"type": "string"},
+          "trustedResources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["title", "url"],
+              "properties": {
+                "title": {"type": "string"},
+                "url": {"type": "string"},
+                "reason": {"type": "string"}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
     "concepts": {
       "type": "array",
       "items": {

@@ -16,6 +16,30 @@
       "files": [
         "scenarios/correct-learner-signal.md"
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "Use /analysis:teach-me across several sessions so I can safely redesign retry ownership. Start from the attached learner state and current platform documentation.",
+      "expected_output": "Claude records an optional workspace-scoped learning goal with purpose, desired capability, active status, and useful primary-source links. It uses workspace evidence for current ownership, current primary sources for platform behavior, and a compact path with retrieval after intervening material and application across different retry workflows. One correct response can become practiced but not demonstrated. It does not create a course, HTML lessons, or community requirement.",
+      "files": [
+        "scenarios/multi-session-learning-goal.md"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Use /analysis:teach-me for one quick explanation of this cache invalidation path. I did not ask for a saved guide.",
+      "expected_output": "Claude keeps the one-session goal in the conversation, teaches the minimum evidence-grounded path, and does not add a persistent learning goal or create .analysis/learning reference material without a request or repeated-use justification. An existing learner model without learningGoals remains valid.",
+      "files": [
+        "scenarios/one-session-backward-compatible.md"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Wait, what? The retry explanation did not land.",
+      "expected_output": "Claude names the retry-ownership subject in ordinary language, restores the minimum event-flow context, explains the cause and consequence, introduces the workspace term after its meaning, and ends with one immediate understanding check. It does not restart the learning path, dump the full lesson history, or create a reference artifact.",
+      "files": [
+        "scenarios/conversation-repair.md"
+      ]
     }
   ]
 }

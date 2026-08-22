@@ -1,0 +1,21 @@
+{
+  "skill_name": "to-questionnaire",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use /to-questionnaire. Our platform architect knows which identity patterns are allowed, but I do not. We need the answer before settling authentication design.",
+      "expected_output": "Claude asks only for missing recipient and handoff context, classifies the permitted identity pattern and supporting platform standard as blocking constraints or facts, requests the authoritative platform evidence, and writes a concise questionnaire under docs/questionnaires. It does not ask the sender to choose an identity pattern, invent the platform answer, contact the architect, or mutate a tracker.",
+      "files": [
+        "scenarios/blocking-platform-knowledge.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Use /to-questionnaire to ask our support lead for launch preferences and final approval. The recipient, purpose, and desired answers are all in the attached context.",
+      "expected_output": "Claude does not repeat questions already answered by the context. It separates nonblocking support preferences from the blocking launch approval, orders the approval and high-value questions first, gives each atomic question an answer space, invites partial or uncertain answers, and reports the local artifact path without sending it.",
+      "files": [
+        "scenarios/preferences-and-approval.md"
+      ]
+    }
+  ]
+}

@@ -18,6 +18,10 @@ Do not repeat product discovery. Do not turn design into a feature backlog, deli
 
 Read [the plain-language writing guide](references/plain-language-writing.md) before writing the notebook, final design, or session synthesis.
 
+Read and apply [the domain-modeling discipline](../../references/domain-modeling.md) when terms, relationships, invariants, scenarios, or source evidence expose a material conceptual conflict. Keep resolved domain state in the design notebook and keep implementation decisions in the design views.
+
+Read [the local decision-map protocol](../../references/decision-map.md). Keep the ordinary design frontier by default. Escalate only when consequential uncertainty must remain coherent across sessions, contains real blocking relationships, supports independent work, or no longer fits a compact frontier. Return every resolution to the design notebook before continuing this workflow.
+
 In every response and artifact:
 
 - Put the design conclusion first.

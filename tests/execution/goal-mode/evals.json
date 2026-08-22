@@ -32,6 +32,22 @@
       "files": [
         "scenarios/completion-gate.md"
       ]
+    },
+    {
+      "id": 5,
+      "prompt": "Use /execution:goal-mode on this issue after local implementation completes and it reaches the manual production gate.",
+      "expected_output": "Claude completes safe preparation, follows Guided Operator to write and link a runbook, records the fresh external evidence required to resume, and keeps the issue Blocked. It does not treat the runbook as deployment authority or advance the issue until current state and evidence are rechecked.",
+      "files": [
+        "scenarios/manual-gate.md"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Wait, what? Where is Goal Mode and why did it stop?",
+      "expected_output": "Claude explains the current issue and human gate in ordinary language, restores only the relevant work-review context, explains why execution stopped and what evidence unlocks it, and ends with the immediate operator action. It does not replay the ledger or restart Goal Mode.",
+      "files": [
+        "scenarios/conversation-repair.md"
+      ]
     }
   ]
 }

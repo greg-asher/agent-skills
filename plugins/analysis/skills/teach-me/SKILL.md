@@ -15,6 +15,8 @@ Load `.analysis/workspace-model.json` when present and check its revision and co
 
 Load `.analysis/learner-model.json` when present. Reuse demonstrated understanding and prior goals. Do not make the user repeat what the workspace already establishes or what the learner model supports.
 
+Persist a learning goal only when the user intends to learn across sessions. Record its purpose, desired capability, status, and useful trusted resource links. Keep a one-session goal in the conversation. Existing learner models without `learningGoals` remain valid.
+
 Infer the desired depth from the request, recent activity, workspace complexity, and learner history. Ask one focused opening question only when the learning outcome or baseline cannot be inferred safely.
 
 ## 2. Build the adaptive path
@@ -24,6 +26,8 @@ Choose the smallest progression that reaches the user's outcome. A useful path m
 For a large workspace, teach the top-level map before focused subsystems. For a task-specific request, teach the minimum surrounding architecture needed to reason about that task safely. Prioritize disputed and emerging concepts without replaying already demonstrated material.
 
 Keep the plan dynamic. State the current learning path briefly, then teach one coherent concept at a time.
+
+Use retrieval after intervening material and application across different workspace workflows when they strengthen the requested capability. Treat one reasoned success as `practiced`; require repeated or applied evidence before marking a concept `demonstrated`.
 
 ## 3. Teach through evidence
 
@@ -36,6 +40,10 @@ For each concept:
 5. check understanding with a short explanation, prediction, or application prompt
 
 Adapt the next lesson from the response. Distinguish a vocabulary gap from a causal-model gap. Do not use quizzes merely to manufacture engagement.
+
+When external knowledge materially affects the lesson, research current primary sources and keep their claims distinct from workspace behavior. Save a resource link on a persistent goal only when it will remain useful across sessions.
+
+Create `.analysis/learning/<slug>-reference.md` only when the user requests a durable reference or repeated use clearly justifies one. Keep it concise, evidence-linked, and designed for retrieval. Do not create HTML lessons, course folders, reusable lesson assets, or community participation requirements.
 
 ## 4. Maintain learner history
 

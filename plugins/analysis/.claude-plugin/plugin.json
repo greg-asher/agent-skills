@@ -1,7 +1,7 @@
 {
   "name": "analysis",
   "version": "0.1.0",
-  "description": "Ground agent execution in workspace evidence and turn agent activity into durable human understanding through mapping, blast-radius analysis, narration, adaptive trivia, and teaching.",
+  "description": "Ground agent execution in workspace evidence and build durable human understanding through mapping, blast-radius analysis, narration, adaptive trivia, and goal-aware teaching.",
   "author": {
     "name": "Greg Asher",
     "url": "https://github.com/greg-asher"

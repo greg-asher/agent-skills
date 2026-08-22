@@ -18,6 +18,8 @@ Write for the named reader. If none is named, write for a technically literate t
 
 Read [the plain-language writing guide](references/plain-language-writing.md) before you write the report, knowledge-base pages, atlas, presentations, onboarding material, or final session synthesis. Apply its core rules to all prose. Apply its technical rules when you explain the system or give navigation instructions. Apply its editorial rules when you report findings, evidence, significance, or uncertainty.
 
+Read and apply [the domain-modeling discipline](../../references/domain-modeling.md) when source terminology conflicts, one concept has competing names, scenarios expose unclear boundaries, or documented language disagrees with implementation evidence. Record the conflict and evidence without inventing the organization's intended meaning.
+
 In every response and artifact:
 
 - Put the main finding first.
