@@ -2,6 +2,18 @@
 
 Reusable Claude Code and Codex skills for workspace analysis, discovery, solution design, implementation planning, coordinated execution, independent review, human collaboration, and the complete Kestrel managed-work lifecycle.
 
+## Utilities plugin
+
+The `utilities` plugin contains three explicitly invoked skills:
+
+| Skill | Purpose |
+| --- | --- |
+| `/utilities:audit-storage` | Measure Codex, Claude Code, Kestrel, Git, dependency, package-manager, and build storage without deleting anything. |
+| `/utilities:reclaim-storage` | Reclaim reviewed storage with worktree, activity, ownership, and recoverability safeguards. |
+| `/utilities:manage-memory` | Diagnose RAM and swap pressure, attribute process trees to tools and projects, and safely stop only approved inactive work. |
+
+Audit classifies storage as regenerable, review required, protected, or unknown. Reclaim operates on exact reviewed targets; Kestrel-managed worktrees continue through Kestrel's lifecycle-aware cleanup rather than generic deletion.
+
 ## Discovery plugin
 
 The `discovery` plugin contains two skills:
@@ -142,6 +154,12 @@ Install the Analysis plugin:
 
 ```text
 /plugin install analysis@greg-asher-skills
+```
+
+Install the Utilities plugin:
+
+```text
+/plugin install utilities@greg-asher-skills
 ```
 
 The plugins use Git commit versions. Updating the marketplace and a plugin picks up the latest published commit.
@@ -428,7 +446,7 @@ claude --plugin-dir ./plugins/analysis
 
 ## Security
 
-The plugins include no hooks, Model Context Protocol servers, or preapproved tools. Discovery includes a model-neutral source investigator and a dependency-free Office extractor that rejects unsafe archive paths and bounded-expansion limits. Analysis is read-only with respect to product code and external systems; its default writes are limited to `.analysis/` evidence, learning references, and learner artifacts, and it records environment-variable names rather than values. Execution includes model-neutral packaged agents; the reviewer agents cannot write files. Guided Operator writes local runbooks and optional deterministic helpers but does not perform the complete external operation or store secret values. Productivity writes local questionnaires and does not send them. The Kestrel plugin includes one executable wrapper that invokes a locally installed `kestrel job run`. It requests a managed worktree and does not merge or publish by default. Review skill and agent instructions before installation, as you would with any agent extension.
+The plugins include no hooks, Model Context Protocol servers, or preapproved tools. Discovery includes a model-neutral source investigator and a dependency-free Office extractor that rejects unsafe archive paths and bounded-expansion limits. Analysis is read-only with respect to product code and external systems; its default writes are limited to `.analysis/` evidence, learning references, and learner artifacts, and it records environment-variable names rather than values. Execution includes model-neutral packaged agents; the reviewer agents cannot write files. Guided Operator writes local runbooks and optional deterministic helpers but does not perform the complete external operation or store secret values. Productivity writes local questionnaires and does not send them. Utilities includes a dependency-free, read-only storage inventory script; deletion and process termination remain explicit skill actions with target-specific safeguards. The Kestrel plugin includes one executable wrapper that invokes a locally installed `kestrel job run`. It requests a managed worktree and does not merge or publish by default. Review skill and agent instructions before installation, as you would with any agent extension.
 
 ## Acknowledgments
 

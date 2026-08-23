@@ -1,0 +1,10 @@
+{
+  "name": "utilities",
+  "version": "0.1.0",
+  "description": "Audit and safely reclaim disk used by coding agents, repositories, dependencies, and build caches.",
+  "author": { "name": "Greg Asher", "url": "https://github.com/greg-asher" },
+  "homepage": "https://github.com/greg-asher/agent-skills",
+  "repository": "https://github.com/greg-asher/agent-skills",
+  "license": "MIT",
+  "keywords": ["disk-usage", "worktrees", "caches", "node-modules", "cleanup"]
+}
