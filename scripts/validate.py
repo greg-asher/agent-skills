@@ -21,6 +21,7 @@ EXPECTED_PLUGINS = {
     "execution": {"goal-mode", "guided-operator", "review-work", "work-on-issues"},
     "kestrel": {"assign", "cleanup", "integrate", "recover", "run", "setup", "status"},
     "productivity": {"to-questionnaire"},
+    "utilities": {"audit-storage", "manage-memory", "reclaim-storage"},
 }
 EXPECTED_AGENTS = {
     "discovery": {"source-investigator"},

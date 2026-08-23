@@ -1,0 +1,16 @@
+{
+  "name": "utilities",
+  "version": "0.1.0",
+  "description": "Audit and safely reclaim disk used by coding agents, repositories, dependencies, and build caches.",
+  "author": { "name": "Greg Asher", "url": "https://github.com/greg-asher" },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Utilities",
+    "shortDescription": "Understand and safely reclaim developer disk usage.",
+    "longDescription": "Utilities inventories and safely reclaims developer storage, diagnoses RAM and swap pressure, and protects active sessions, source work, credentials, and recoverability.",
+    "developerName": "Greg Asher",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Audit developer disk usage and help me safely reclaim space."
+  }
+}

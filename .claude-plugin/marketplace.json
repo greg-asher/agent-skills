@@ -131,6 +131,20 @@
       ]
     },
     {
+      "name": "utilities",
+      "source": "./plugins/utilities",
+      "description": "Audit and safely reclaim developer disk, diagnose RAM pressure, and protect active coding-agent and repository work.",
+      "author": {
+        "name": "Greg Asher",
+        "url": "https://github.com/greg-asher"
+      },
+      "homepage": "https://github.com/greg-asher/agent-skills",
+      "repository": "https://github.com/greg-asher/agent-skills",
+      "license": "MIT",
+      "category": "productivity",
+      "tags": ["disk-usage", "memory", "cleanup", "worktrees", "caches", "node-modules", "codex", "claude-code", "kestrel"]
+    },
+    {
       "name": "analysis",
       "source": "./plugins/analysis",
       "description": "Ground agent execution in workspace evidence and build durable human understanding through mapping, blast-radius analysis, narration, adaptive trivia, and goal-aware teaching.",
