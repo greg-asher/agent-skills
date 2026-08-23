@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "Use /kestrel:assign to hand the attached implementation issue to Kestrel. Do not implement it in Claude Code.",
-      "expected_output": "Claude reads the complete issue, uses it as the assignment authority, and writes a concise self-contained task file without reopening product or solution design. It invokes kestrel-assign for the current Git root and persistent plugin assignment directory. Kestrel receives build mode, full-auto execution, noninteractive completion, and a session-isolated managed worktree. Claude waits for the terminal result and reports the actual status, assistant result, session, thread, run, assignment directory, and replay command. It does not implement the issue locally, claim completion from process start, or merge and push the result.",
+      "expected_output": "The agent reads the complete issue, uses it as assignment authority, and writes a concise task file without reopening design. It invokes the shared Kestrel runtime for the current Git root and durable plugin state. Kestrel receives build mode, full-auto execution, noninteractive completion, and a session-isolated managed worktree. The agent waits for the durable terminal result and reports status, result, identifiers, evidence, and replay details without integrating, pushing, or publishing.",
       "files": [
         "scenarios/sample-implementation-issue.md"
       ]
@@ -12,7 +12,7 @@
     {
       "id": 2,
       "prompt": "Use /kestrel:assign to add a --json flag to the existing status command, preserve the text output, and run the focused CLI tests.",
-      "expected_output": "Claude compiles the supplied outcome, compatibility boundary, and validation request into one direct implementation assignment. It submits the task through kestrel-assign rather than running a second implementation loop. It uses the current committed Git root, leaves worktree creation to Kestrel, waits for a terminal result, and reports durable run and replay details.",
+      "expected_output": "The agent compiles the outcome, compatibility boundary, and validation request into one direct assignment. It submits through the shared Kestrel runtime rather than implementing locally, reuses matching durable work when appropriate, leaves worktree creation to Kestrel, and reports the terminal lifecycle and replay evidence without integration.",
       "files": []
     }
   ]

@@ -1,6 +1,6 @@
 # Agent Skills
 
-Reusable Claude Code and Codex skills for workspace analysis, discovery, solution design, implementation planning, coordinated execution, independent review, human collaboration, and Kestrel delegation.
+Reusable Claude Code and Codex skills for workspace analysis, discovery, solution design, implementation planning, coordinated execution, independent review, human collaboration, and the complete Kestrel managed-work lifecycle.
 
 ## Discovery plugin
 
@@ -64,15 +64,21 @@ The skill writes a local handoff artifact. It does not invent answers, contact t
 
 ## Kestrel plugin
 
-The `kestrel` plugin contains one skill:
+The cross-platform `kestrel` plugin contains seven explicitly invoked skills:
 
 | Skill | Purpose |
 | --- | --- |
-| `/kestrel:assign` | Assign a bounded repository task to Kestrel for autonomous implementation and validation in an isolated managed worktree. |
+| `/kestrel:setup` | Install, configure, upgrade, verify, or repair Kestrel with explicit installation approval. |
+| `/kestrel:run` | Complete a bounded task through assignment, local integration, and safe worktree cleanup. |
+| `/kestrel:assign` | Assign a bounded task for isolated autonomous implementation and validation. |
+| `/kestrel:status` | Explain installation readiness or the lifecycle of an active or recent run. |
+| `/kestrel:recover` | Diagnose and replay one clearly interrupted run without duplicating work. |
+| `/kestrel:integrate` | Verify and adopt a completed isolated result into the current local branch. |
+| `/kestrel:cleanup` | Safely remove a managed worktree while retaining durable evidence by default. |
 
-The skill accepts an implementation issue or a direct task. It submits Kestrel's supported job contract, waits for a terminal result, and returns the result with durable run and replay details.
+`run` is the convenient autonomous entry point. It accepts an implementation issue or direct task, reuses matching durable work, submits Kestrel's supported job contract, waits for terminal evidence, integrates the exact result locally, and removes only a proven-clean managed worktree. It never pushes, opens a pull request, merges remotely, or deploys without a separate explicit request.
 
-It requires a locally installed Kestrel CLI with `kestrel job run` support.
+The plugin supports macOS arm64 and Linux x64 with Node.js 22. Setup installs the public stable `@kestrel-agents/kestrel` npm package only after showing the exact version and receiving approval. It never installs Node or overwrites an unrelated executable.
 
 ## Analysis plugin
 
@@ -208,10 +214,23 @@ Collect missing knowledge from another person:
 /productivity:to-questionnaire Ask our platform owner for the blocking tenancy constraints and supporting standards.
 ```
 
-Assign one of those issues to Kestrel:
+Run one of those issues through local integration and clean worktree closeout:
+
+```text
+/kestrel:run Complete docs/planning/scout/issues/02-qualify-opportunity.md
+```
+
+Assign one issue while leaving its result isolated:
 
 ```text
 /kestrel:assign Complete docs/planning/scout/issues/02-qualify-opportunity.md
+```
+
+Inspect or recover recent work:
+
+```text
+/kestrel:status Show me the latest run.
+/kestrel:recover Recover the interrupted run if one replay is justified.
 ```
 
 Build or refresh the workspace model:
@@ -298,7 +317,7 @@ Discover -> Design -> Plan -> Goal Mode
                          Review Work --+
 ```
 
-`kestrel:assign` writes the submitted job input and Kestrel's durable output under the plugin data directory. Kestrel implements and validates the task in a session-isolated managed worktree; the skill reports the terminal result, identifiers, artifact paths, and replay command.
+Kestrel lifecycle skills retain a versioned manifest, submitted job input, durable output, identifiers, validation evidence, and replay/doctor pointers under the host plugin-data directory. Claude Code uses `${CLAUDE_PLUGIN_DATA}/kestrel`; Codex uses `${CODEX_HOME:-~/.codex}/plugin-data/kestrel`. Successful `run` removes the clean managed worktree after local integration but retains this evidence.
 
 Analysis sits beside the lifecycle. Its workspace model can ground discovery, design, planning, and execution, while Narrate, Game Show, and Teach Me turn work from any phase into durable human understanding.
 

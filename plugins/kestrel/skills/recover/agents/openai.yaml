@@ -1,0 +1,6 @@
+interface:
+  display_name: "Recover Kestrel Run"
+  short_description: "Diagnose and replay interrupted work"
+  default_prompt: "Use $recover to diagnose this Kestrel run and safely continue it when replay is justified."
+policy:
+  allow_implicit_invocation: false

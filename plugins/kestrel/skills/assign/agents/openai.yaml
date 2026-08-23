@@ -1,0 +1,6 @@
+interface:
+  display_name: "Assign to Kestrel"
+  short_description: "Delegate one isolated repository task"
+  default_prompt: "Use $assign to hand one bounded repository task to Kestrel without integrating it."
+policy:
+  allow_implicit_invocation: false

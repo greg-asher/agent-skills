@@ -101,9 +101,10 @@ function runWrapper(fixture) {
 }
 
 function onlyAssignment(stateDir) {
-  const entries = readdirSync(stateDir);
+  const runsDir = join(stateDir, "runs");
+  const entries = readdirSync(runsDir);
   assert.equal(entries.length, 1);
-  return join(stateDir, entries[0]);
+  return join(runsDir, entries[0]);
 }
 
 function run(command, args, cwd) {

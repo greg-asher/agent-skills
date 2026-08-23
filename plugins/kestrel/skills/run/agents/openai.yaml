@@ -1,0 +1,6 @@
+interface:
+  display_name: "Run with Kestrel"
+  short_description: "Deliver a task through local integration"
+  default_prompt: "Use $run to complete this bounded repository task with Kestrel and integrate it locally."
+policy:
+  allow_implicit_invocation: false

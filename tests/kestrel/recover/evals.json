@@ -1,0 +1,1 @@
+{"skill_name":"recover","evals":[{"id":1,"prompt":"Use /kestrel:recover on the latest interrupted assignment.","expected_output":"The agent reads durable output and doctor evidence, proves the original is not active, offers or performs at most one justified replay, never creates duplicate work, and stops for semantic, credential, authority, or repeated failures.","files":[]}]}
