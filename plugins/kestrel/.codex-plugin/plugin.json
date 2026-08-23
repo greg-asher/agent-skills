@@ -1,0 +1,19 @@
+{
+  "name": "kestrel",
+  "version": "0.2.0",
+  "description": "Run the complete Kestrel managed-work lifecycle from setup through safe local integration and cleanup.",
+  "author": {
+    "name": "Greg Asher",
+    "url": "https://github.com/greg-asher"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Kestrel",
+    "shortDescription": "Run autonomous repository work safely.",
+    "longDescription": "Kestrel installs and verifies the CLI, assigns and observes autonomous work, recovers interrupted runs, integrates verified results locally, and safely cleans managed worktrees.",
+    "developerName": "Greg Asher",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Help me run and manage autonomous repository work with Kestrel."
+  }
+}

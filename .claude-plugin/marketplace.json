@@ -111,7 +111,7 @@
     {
       "name": "kestrel",
       "source": "./plugins/kestrel",
-      "description": "Assign bounded repository work to Kestrel for autonomous implementation and validation in an isolated managed worktree.",
+      "description": "Install and operate Kestrel across autonomous assignment, observation, recovery, local integration, and managed-worktree cleanup.",
       "author": {
         "name": "Greg Asher",
         "url": "https://github.com/greg-asher"
@@ -123,6 +123,9 @@
       "tags": [
         "kestrel",
         "delegation",
+        "installation",
+        "recovery",
+        "integration",
         "autonomous-development",
         "managed-worktrees"
       ]

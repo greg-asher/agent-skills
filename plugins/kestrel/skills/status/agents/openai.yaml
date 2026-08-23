@@ -1,0 +1,6 @@
+interface:
+  display_name: "Kestrel Status"
+  short_description: "Explain current or recent Kestrel work"
+  default_prompt: "Use $status to explain the current Kestrel run and its safest next action."
+policy:
+  allow_implicit_invocation: false

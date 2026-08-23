@@ -1,0 +1,201 @@
+#!/usr/bin/env node
+import { createHash, randomBytes } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, realpathSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { basename, join, resolve } from "node:path";
+import { spawnSync } from "node:child_process";
+
+const PACKAGE = "@kestrel-agents/kestrel";
+const COMMANDS = new Set(["setup", "run", "assign", "status", "recover", "integrate", "cleanup"]);
+const REQUIRED_HELP = ["status", "workspace", "job", "setup", "runtime"];
+const command = process.argv[2];
+if (!COMMANDS.has(command) || process.argv.includes("--help") || process.argv.includes("-h")) {
+  process.stdout.write(usage());
+  process.exit(COMMANDS.has(command) ? 0 : 1);
+}
+try { process.exit(dispatch(command, parseArguments(process.argv.slice(3)))); }
+catch (error) { process.stderr.write(`kestrel-plugin: ${error instanceof Error ? error.message : String(error)}\n`); process.exit(1); }
+
+function dispatch(name, options) {
+  if (name === "setup") return setup(options);
+  if (name === "assign") return assign(options).code;
+  if (name === "status") return status(options);
+  if (name === "recover") return recover(options);
+  if (name === "integrate") return integrate(options).code;
+  if (name === "cleanup") return cleanup(options);
+  return runLifecycle(options);
+}
+
+function setup(options) {
+  const nodeMajor = Number(process.versions.node.split(".")[0]);
+  if (nodeMajor !== 22 && !options.allowTestNode) return report(options, { status: "NODE_UNSUPPORTED", detected: process.version, required: "22.x" }, 3);
+  const platform = `${process.platform}-${process.arch}`;
+  if (!["darwin-arm64", "linux-x64"].includes(platform) && !options.allowTestPlatform) return report(options, { status: "PLATFORM_UNSUPPORTED", platform }, 3);
+  const kestrelBin = options.kestrelBin ?? "kestrel";
+  let probe = spawn(kestrelBin, ["--help"], options.workspace);
+  let installed = probe.status === 0;
+  let version = installed ? probeVersion(kestrelBin, options.workspace) : undefined;
+  let missing = installed ? REQUIRED_HELP.filter((word) => !probe.stdout.includes(word)) : REQUIRED_HELP;
+  if (!installed || missing.length) {
+    const npmBin = options.npmBin ?? "npm";
+    const latest = options.installVersion ?? resolveStableVersion(npmBin);
+    const installCommand = `${npmBin} install -g ${PACKAGE}@${latest}`;
+    if (!options.approveInstall) return report(options, { status: "INSTALL_APPROVAL_REQUIRED", package: PACKAGE, version: latest, command: installCommand }, 2);
+    if (installed && !(basename(kestrelBin) === "kestrel" && version)) throw new Error(`Refusing to overwrite unrelated executable: ${kestrelBin}`);
+    const installedResult = spawn(npmBin, ["install", "-g", `${PACKAGE}@${latest}`], options.workspace, true);
+    if (installedResult.status !== 0) throw new Error(`npm installation failed: ${installedResult.stderr.trim()}`);
+    probe = spawn(kestrelBin, ["--help"], options.workspace);
+    installed = probe.status === 0;
+    version = probeVersion(kestrelBin, options.workspace);
+    missing = REQUIRED_HELP.filter((word) => !probe.stdout.includes(word));
+  }
+  if (!installed || missing.length) throw new Error(`Kestrel is missing required capabilities: ${missing.join(", ")}`);
+  if (!options.skipConfigure) {
+    const configured = spawn(kestrelBin, ["setup", "--profile", options.profile ?? "kestrel", "--approval-pack", options.approvalPack ?? "dev", "--full"], options.workspace, true);
+    if (configured.status !== 0) throw new Error(`Kestrel setup failed: ${configured.stderr.trim()}`);
+  }
+  const health = spawn(kestrelBin, ["core", "status"], options.workspace);
+  const result = { status: health.status === 0 ? "READY" : "CORE_UNAVAILABLE", platform, version, executable: kestrelBin };
+  const root = stateRoot(options); mkdirSync(root, { recursive: true }); writeJson(join(root, "setup.json"), { version: "kestrel_plugin_setup_v1", ...result, checkedAt: new Date().toISOString() });
+  return report(options, result, health.status === 0 ? 0 : 4);
+}
+
+function assign(options) {
+  const workspaceRoot = gitRoot(required(options.workspace, "--workspace"));
+  const task = readTask(resolve(required(options.taskFile, "--task-file")));
+  const root = stateRoot(options); mkdirSync(join(root, "runs"), { recursive: true });
+  const taskHash = createHash("sha256").update(`${workspaceRoot}\0${task}`).digest("hex");
+  const reusable = matchingRun(root, taskHash);
+  if (reusable && !options.newRun) { printSummary(reusable.dir, reusable.manifest, readJson(join(reusable.dir, "output.json"))); return { code: lifecycleCode(reusable.manifest.lifecycle), manifest: reusable.manifest }; }
+  const sourceRevision = git(workspaceRoot, ["rev-parse", "HEAD"]).stdout.trim();
+  const sessionId = options.session ?? sessionName(task); validateId(sessionId);
+  const dir = join(root, "runs", sessionId); if (existsSync(dir)) throw new Error(`Assignment already exists: ${dir}`); mkdirSync(dir);
+  const inputPath = join(dir, "input.json"), outputPath = join(dir, "output.json");
+  const input = jobInput(options, workspaceRoot, task, sessionId); writeJson(inputPath, input);
+  const kestrelBin = options.kestrelBin ?? "kestrel";
+  let manifest = { version: "kestrel_plugin_run_v1", sessionId, taskHash, workspaceRoot, workspaceId: input.turn.workspace.workspaceId, sourceRevision, profileId: input.profileId, approvalPolicyPackId: input.approvalPolicyPackId, cliVersion: probeVersion(kestrelBin, workspaceRoot), lifecycle: "RUNNING", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), inputPath, outputPath, worktreePath: null, resultRevision: null, validation: [], integration: { status: "NOT_STARTED" }, cleanup: { status: "NOT_STARTED" }, recoveryAttempts: 0 }; writeJson(join(dir, "manifest.json"), manifest);
+  const child = spawn(kestrelBin, ["job", "run", "--json-in", inputPath, "--json-out", outputPath], workspaceRoot, true);
+  const output = readJson(outputPath);
+  if (!output) { manifest = update(dir, manifest, { lifecycle: "INTERRUPTED", error: "Kestrel produced no durable output" }); printSummary(dir, manifest); return { code: child.status || 1, manifest }; }
+  manifest = fromOutput(dir, manifest, output); printSummary(dir, manifest, output); return { code: lifecycleCode(manifest.lifecycle), manifest };
+}
+
+function status(options) {
+  const found = findRun(stateRoot(options), options);
+  if (!found) { const probe = spawn(options.kestrelBin ?? "kestrel", ["--help"]); return report(options, { status: probe.status === 0 ? "NO_RUNS" : "NOT_INSTALLED" }, probe.status === 0 ? 0 : 3); }
+  const outputPath = join(found.dir, "output.json"), output = readJson(outputPath);
+  const manifest = existsSync(outputPath) && !output ? update(found.dir, found.manifest, { lifecycle: "FAILED", error: "Durable output is not valid JSON" }) : output ? fromOutput(found.dir, found.manifest, output) : found.manifest;
+  return report(options, { ...manifest, assignmentDir: found.dir }, lifecycleCode(manifest.lifecycle));
+}
+
+function recover(options) {
+  const found = requireRun(options), manifest = found.manifest;
+  if (["RUNNING", "COMPLETED_ISOLATED", "INTEGRATED", "CLEANED"].includes(manifest.lifecycle)) return report(options, { status: "NO_RECOVERY_NEEDED", lifecycle: manifest.lifecycle }, 0);
+  if (manifest.recoveryAttempts >= 1) throw new Error("Automatic replay limit reached; inspect doctor and bundle evidence");
+  const output = readJson(join(found.dir, "output.json")); const runId = output?.job?.replay?.runId ?? output?.job?.runId ?? manifest.runId;
+  if (!runId) throw new Error("Run has no durable replay identifier");
+  const bin = options.kestrelBin ?? "kestrel", doctorPath = join(found.dir, "doctor.json");
+  const doctor = spawn(bin, ["runtime", "doctor", "--run-id", runId, "--json"], manifest.workspaceRoot); writeFileSync(doctorPath, doctor.stdout || doctor.stderr, "utf8");
+  if (!options.replay) return report(options, { status: "REPLAY_AVAILABLE", runId, doctorPath }, 2);
+  update(found.dir, manifest, { recoveryAttempts: manifest.recoveryAttempts + 1 });
+  const replayed = spawn(bin, ["runtime", "replay", "--run-id", runId, "--json"], manifest.workspaceRoot, true);
+  let refreshed = update(found.dir, readJson(join(found.dir, "manifest.json")), { lifecycle: replayed.status === 0 ? "COMPLETED_ISOLATED" : "FAILED", recoveredAt: new Date().toISOString() });
+  if (replayed.status === 0) { try { const replayOutput = JSON.parse(replayed.stdout); if (replayOutput?.job) { writeJson(join(found.dir, "output.json"), replayOutput); refreshed = fromOutput(found.dir, refreshed, replayOutput); } } catch { /* Successful replay may report through existing durable state. */ } }
+  return report(options, { status: refreshed.lifecycle, runId, doctorPath }, replayed.status === 0 ? 0 : 1);
+}
+
+function integrate(options) {
+  const found = requireRun(options); let manifest = found.manifest;
+  if (["INTEGRATED", "CLEANED"].includes(manifest.lifecycle)) return { code: 0, manifest };
+  if (manifest.lifecycle !== "COMPLETED_ISOLATED") throw new Error(`Run is not completed and isolated: ${manifest.lifecycle}`);
+  const target = gitRoot(options.workspace ?? manifest.workspaceRoot), worktree = manifest.worktreePath;
+  if (!worktree || !existsSync(worktree)) throw new Error("Completed run does not identify an existing managed worktree");
+  const targetChanges = changed(target), resultChanges = changedSince(worktree, manifest.sourceRevision), overlap = targetChanges.filter((path) => resultChanges.includes(path));
+  if (overlap.length) throw new Error(`Target has overlapping changes: ${overlap.join(", ")}`);
+  let resultRevision = manifest.resultRevision;
+  if (changed(worktree).length) { git(worktree, ["add", "--all"]); const committed = git(worktree, ["commit", "-m", `Kestrel result: ${manifest.sessionId}`], true); if (committed.status !== 0) throw new Error(`Could not commit managed result: ${committed.stderr.trim()}`); resultRevision = git(worktree, ["rev-parse", "HEAD"]).stdout.trim(); }
+  resultRevision ??= git(worktree, ["rev-parse", "HEAD"]).stdout.trim(); if (resultRevision === manifest.sourceRevision) throw new Error("Completed run contains no result changes");
+  if (git(worktree, ["merge-base", "--is-ancestor", manifest.sourceRevision, resultRevision], true).status !== 0) throw new Error("Result revision does not descend from the recorded assignment source");
+  const resultHeadRevision = resultRevision, tree = git(worktree, ["rev-parse", `${resultHeadRevision}^{tree}`]).stdout.trim();
+  resultRevision = git(worktree, ["commit-tree", tree, "-p", manifest.sourceRevision, "-m", `Kestrel result: ${manifest.sessionId}`]).stdout.trim();
+  const before = git(target, ["rev-parse", "HEAD"]).stdout.trim(), cherry = git(target, ["cherry-pick", resultRevision], true);
+  if (cherry.status !== 0) { git(target, ["cherry-pick", "--abort"], true); throw new Error(`Integration conflict; target restored to ${before}`); }
+  const integratedRevision = git(target, ["rev-parse", "HEAD"]).stdout.trim();
+  manifest = update(found.dir, manifest, { lifecycle: "INTEGRATED", resultHeadRevision, resultRevision, integration: { status: "COMPLETED", target, beforeRevision: before, integratedRevision, integratedAt: new Date().toISOString() } });
+  report(options, { status: "INTEGRATED", resultRevision, integratedRevision, assignmentDir: found.dir }, 0); return { code: 0, manifest };
+}
+
+function cleanup(options) {
+  const found = requireRun(options); let manifest = found.manifest, worktree = manifest.worktreePath;
+  if (options.deleteEvidence) { if (options.confirm !== manifest.sessionId) throw new Error(`Use --confirm ${manifest.sessionId} to delete durable evidence`); if (worktree && existsSync(worktree)) throw new Error("Remove the managed worktree before deleting evidence"); rmSync(found.dir, { recursive: true }); return report(options, { status: "EVIDENCE_DELETED", assignmentDir: found.dir }, 0); }
+  if (!worktree || !existsSync(worktree)) { manifest = update(found.dir, manifest, { lifecycle: "CLEANED", cleanup: { status: "COMPLETED", cleanedAt: new Date().toISOString() } }); return report(options, { status: "CLEANED", evidenceRetained: found.dir }, 0); }
+  if (manifest.lifecycle !== "INTEGRATED" && !options.discardResult) throw new Error("Refusing to remove an unintegrated result without --discard-result");
+  if (changed(worktree).length) throw new Error("Refusing to remove a dirty managed worktree");
+  const runtimeStatus = spawn(options.kestrelBin ?? "kestrel", ["workspace", "status"], manifest.workspaceRoot);
+  if (runtimeStatus.status === 0 && runtimeStatus.stdout.includes(manifest.sessionId) && /\b(active|running|leased)\b/iu.test(runtimeStatus.stdout)) throw new Error("Refusing to remove a worktree with an active Kestrel process or lease");
+  const registered = git(manifest.workspaceRoot, ["worktree", "list", "--porcelain"]).stdout; if (!registered.includes(`worktree ${realpathSync(worktree)}`)) throw new Error("Managed worktree ownership is not present in Git registration");
+  const removed = git(manifest.workspaceRoot, ["worktree", "remove", worktree], true); if (removed.status !== 0) throw new Error(`Worktree removal failed: ${removed.stderr.trim()}`);
+  manifest = update(found.dir, manifest, { lifecycle: "CLEANED", cleanup: { status: "COMPLETED", cleanedAt: new Date().toISOString() } }); return report(options, { status: "CLEANED", evidenceRetained: found.dir }, 0);
+}
+
+function runLifecycle(options) {
+  const nodeMajor = Number(process.versions.node.split(".")[0]), platform = `${process.platform}-${process.arch}`, preflight = spawn(options.kestrelBin ?? "kestrel", ["--help"], options.workspace);
+  if ((nodeMajor !== 22 && !options.allowTestNode) || (!["darwin-arm64", "linux-x64"].includes(platform) && !options.allowTestPlatform) || preflight.status !== 0 || REQUIRED_HELP.some((word) => !preflight.stdout.includes(word))) return report(options, { status: "SETUP_REQUIRED", next: "Run kestrel-plugin setup with explicit installation approval, then rerun this command." }, 3);
+  let assigned = assign(options);
+  if (assigned.code !== 0 && assigned.manifest.lifecycle === "INTERRUPTED" && assigned.manifest.runId) {
+    const recovered = recover({ ...options, session: assigned.manifest.sessionId, replay: true });
+    if (recovered !== 0) return recovered;
+    assigned = { code: 0, manifest: requireRun({ ...options, session: assigned.manifest.sessionId }).manifest };
+  }
+  if (assigned.code !== 0) return assigned.code;
+  const integrated = integrate({ ...options, session: assigned.manifest.sessionId }); if (integrated.code !== 0) return integrated.code;
+  const validationCode = validateIntegratedRun({ ...options, session: assigned.manifest.sessionId }); if (validationCode !== 0) return validationCode;
+  return cleanup({ ...options, session: assigned.manifest.sessionId });
+}
+
+function validateIntegratedRun(options) {
+  const found = requireRun(options);
+  if (!options.validationFile) return report(options, { status: "VALIDATION_EVIDENCE_REUSED", validation: found.manifest.validation }, 0);
+  const commands = readJson(resolve(options.validationFile));
+  if (!Array.isArray(commands) || commands.some((args) => !Array.isArray(args) || !args.length || args.some((value) => typeof value !== "string"))) throw new Error("--validation-file must contain an array of non-empty argument arrays");
+  const results = [];
+  for (const args of commands) {
+    const result = spawn(args[0], args.slice(1), found.manifest.workspaceRoot, true);
+    results.push({ command: args, status: result.status });
+    if (result.status !== 0) { update(found.dir, found.manifest, { validation: results, integration: { ...found.manifest.integration, validationStatus: "FAILED" } }); return report(options, { status: "VALIDATION_FAILED", command: args, assignmentDir: found.dir }, 1); }
+  }
+  update(found.dir, found.manifest, { validation: results, integration: { ...found.manifest.integration, validationStatus: "PASSED" } });
+  return report(options, { status: "VALIDATION_PASSED", checks: results.length }, 0);
+}
+
+function parseArguments(args) {
+  const values = {}, bool = new Map([["--json","json"],["--approve-install","approveInstall"],["--skip-configure","skipConfigure"],["--new-run","newRun"],["--replay","replay"],["--discard-result","discardResult"],["--delete-evidence","deleteEvidence"],["--allow-test-node","allowTestNode"],["--allow-test-platform","allowTestPlatform"]]), strings = new Map([["--workspace","workspace"],["--task-file","taskFile"],["--validation-file","validationFile"],["--state-dir","stateDir"],["--session","session"],["--run","runId"],["--profile","profile"],["--approval-pack","approvalPack"],["--kestrel-bin","kestrelBin"],["--npm-bin","npmBin"],["--install-version","installVersion"],["--confirm","confirm"]]);
+  for (let i=0;i<args.length;i+=1) { const token=args[i]; if (bool.has(token)) { values[bool.get(token)]=true; continue; } const key=strings.get(token); if (!key) throw new Error(`Unknown argument: ${token}`); const value=args[++i]; if (!value || value.startsWith("--")) throw new Error(`${token} requires a value`); values[key]=value; }
+  if (values.approvalPack && !["dev","ci_bot","production"].includes(values.approvalPack)) throw new Error("--approval-pack must be dev, ci_bot, or production"); return values;
+}
+function jobInput(options, root, task, sessionId) { return { version:"job_input_v1", profileId:options.profile??"kestrel", approvalPolicyPackId:options.approvalPack??"dev", turn:{ sessionId,eventType:"job.run",message:task,noninteractive:true,stepAgent:"agent.loop",interactionMode:"build",actSubmode:"full_auto",systemInstructions:["Complete the assigned repository task end to end. Implement the change, validate it, and report the result.","Work only in the managed Kestrel worktree. Do not merge, push, publish, or deploy unless the assignment explicitly requires it.","If missing authority or information prevents responsible completion, stop with one specific blocker instead of guessing."],workspace:{workspaceId:workspaceId(root),workspaceRoot:root,launchCwd:root,appRoot:".",commands:{},label:basename(root),managedWorktreeRequired:true,managedWorktreeIsolation:"session",sourceWorkspaceRoot:root,managedWorktreeBaseRef:"HEAD"}}}; }
+function fromOutput(dir, manifest, output) { const job=output?.job??{}, detail=job?.result?.output??{}, map={COMPLETED:"COMPLETED_ISOLATED",WAITING:"WAITING",RUNNING:"RUNNING",FAILED:"FAILED"}; return update(dir,manifest,{lifecycle:map[job.status]??"FAILED",threadId:job.threadId??manifest.threadId,runId:job.runId??manifest.runId,replay:job.replay??manifest.replay,worktreePath:detail.worktreePath??detail.managedWorktreePath??manifest.worktreePath,resultRevision:detail.resultRevision??detail.commit??manifest.resultRevision,validation:detail.validation??manifest.validation}); }
+function stateRoot(options={}) { if(options.stateDir)return resolve(options.stateDir); if(process.env.CLAUDE_PLUGIN_DATA)return join(process.env.CLAUDE_PLUGIN_DATA,"kestrel"); return join(process.env.CODEX_HOME??join(homedir(),".codex"),"plugin-data","kestrel"); }
+function findRun(root,options) { const runs=join(root,"runs"); if(!existsSync(runs))return undefined; const all=readdirSync(runs).map(name=>({dir:join(runs,name),manifest:readJson(join(runs,name,"manifest.json"))})).filter(x=>x.manifest); return options.session?all.find(x=>x.manifest.sessionId===options.session):options.runId?all.find(x=>x.manifest.runId===options.runId):all.sort((a,b)=>b.manifest.updatedAt.localeCompare(a.manifest.updatedAt))[0]; }
+function requireRun(options){const found=findRun(stateRoot(options),options);if(!found)throw new Error("No matching Kestrel run found");return found;}
+function matchingRun(root,hash){const runs=join(root,"runs");if(!existsSync(runs))return undefined;return readdirSync(runs).map(name=>({dir:join(runs,name),manifest:readJson(join(runs,name,"manifest.json"))})).filter(x=>x.manifest?.taskHash===hash&&!['FAILED','CLEANED'].includes(x.manifest.lifecycle)).sort((a,b)=>b.manifest.updatedAt.localeCompare(a.manifest.updatedAt))[0];}
+function update(dir,manifest,patch){const value={...manifest,...patch,updatedAt:new Date().toISOString()};writeJson(join(dir,"manifest.json"),value);return value;}
+function readJson(path){if(!existsSync(path))return undefined;try{return JSON.parse(readFileSync(path,"utf8"));}catch{return undefined;}}
+function writeJson(path,value){writeFileSync(path,`${JSON.stringify(value,null,2)}\n`,"utf8");}
+function readTask(path){const value=readFileSync(path,"utf8").trim();if(!value)throw new Error(`Task file is empty: ${path}`);return value;}
+function required(value,flag){if(!value)throw new Error(`${flag} is required`);return value;}
+function gitRoot(path){const candidate=realpathSync(resolve(path));const result=git(candidate,["rev-parse","--show-toplevel"]);if(result.status!==0)throw new Error(`${candidate} is not inside a Git repository`);return realpathSync(result.stdout.trim());}
+function git(cwd,args,allow=false){const result=spawn("git",["-C",cwd,...args],cwd);if(!allow&&result.status!==0)throw new Error(`git ${args[0]} failed: ${result.stderr.trim()}`);return result;}
+function spawn(bin,args,cwd,show=false){const result=spawnSync(bin,args,{cwd,env:process.env,encoding:"utf8",maxBuffer:16*1024*1024});if(show){if(result.stdout)process.stdout.write(result.stdout);if(result.stderr)process.stderr.write(result.stderr);}return{status:result.status??(result.error?1:0),stdout:result.stdout??"",stderr:result.stderr??String(result.error??"")};}
+function probeVersion(bin,cwd){const result=spawn(bin,["--version"],cwd);return result.status===0?result.stdout.trim():undefined;}
+function resolveStableVersion(npmBin){const result=spawn(npmBin,["view",PACKAGE,"version","--json"]);if(result.status!==0)throw new Error(`Could not resolve stable Kestrel version: ${result.stderr.trim()}`);const version=JSON.parse(result.stdout);if(typeof version!=="string"||version.includes("-"))throw new Error(`npm stable resolved a prerelease: ${String(version)}`);return version;}
+function changed(cwd){return git(cwd,["status","--porcelain"]).stdout.split("\n").filter(Boolean).map(line=>line.slice(3));}
+function changedSince(cwd,base){return[...new Set([...git(cwd,["diff","--name-only",base]).stdout.split("\n").filter(Boolean),...changed(cwd)])];}
+function workspaceId(root){return`${slug(basename(root))||"workspace"}-${createHash("sha256").update(root).digest("hex").slice(0,8)}`;}
+function sessionName(task){const label=slug(task.split(/\s+/u).slice(0,6).join(" ")).slice(0,42)||"assignment",stamp=new Date().toISOString().replace(/[-:TZ.]/gu,"").slice(0,14);return`assign-${label}-${stamp}-${randomBytes(3).toString("hex")}`;}
+function slug(value){return value.toLowerCase().replace(/[^a-z0-9]+/gu,"-").replace(/^-+|-+$/gu,"");}
+function validateId(value){if(!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$/u.test(value))throw new Error("session must use 1-120 letters, digits, dots, underscores, or hyphens");}
+function lifecycleCode(value){return value==="WAITING"?2:["COMPLETED_ISOLATED","INTEGRATED","CLEANED","RUNNING"].includes(value)?0:1;}
+function printSummary(dir,manifest,output){process.stdout.write(`assignment_dir=${dir}\ninput=${manifest.inputPath}\noutput=${manifest.outputPath}\nstatus=${manifest.lifecycle}\nsession=${manifest.sessionId}\n`);if(manifest.threadId)process.stdout.write(`thread=${manifest.threadId}\n`);if(manifest.runId)process.stdout.write(`run=${manifest.runId}\n`);if(output?.job?.replay?.commands?.replay)process.stdout.write(`replay=${output.job.replay.commands.replay}\n`);if(output?.job?.result?.assistantText)process.stdout.write(`assistant_text:\n${output.job.result.assistantText.trim()}\n`);}
+function report(options,value,code){if(options.json)process.stdout.write(`${JSON.stringify(value,null,2)}\n`);else for(const[key,item]of Object.entries(value))process.stdout.write(`${key}=${typeof item==="object"?JSON.stringify(item):item}\n`);return code;}
+function usage(){return`Usage: kestrel-plugin <setup|run|assign|status|recover|integrate|cleanup> [options]\n\nCommon: --workspace <path> --state-dir <path> --session <id> --run <id> --kestrel-bin <path> --json\nAssign/run: --task-file <path> [--validation-file <json>] [--profile <id>] [--approval-pack dev|ci_bot|production] [--new-run]\nSetup: --approve-install [--npm-bin <path>] [--install-version <version>] [--skip-configure]\nRecover: --replay\nCleanup: --discard-result | --delete-evidence --confirm <session-id>\n`;}

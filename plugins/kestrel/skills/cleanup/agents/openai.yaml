@@ -1,0 +1,6 @@
+interface:
+  display_name: "Clean Up Kestrel Work"
+  short_description: "Remove safe managed artifacts"
+  default_prompt: "Use $cleanup to safely remove this Kestrel worktree while retaining durable evidence."
+policy:
+  allow_implicit_invocation: false

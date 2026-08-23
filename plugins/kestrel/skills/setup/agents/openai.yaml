@@ -1,0 +1,6 @@
+interface:
+  display_name: "Set Up Kestrel"
+  short_description: "Install and verify Kestrel safely"
+  default_prompt: "Use $setup to install or repair Kestrel and verify that it can run jobs."
+policy:
+  allow_implicit_invocation: false

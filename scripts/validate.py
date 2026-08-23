@@ -19,7 +19,7 @@ EXPECTED_PLUGINS = {
     "design": {"change-design", "start-design"},
     "planning": {"create-issues", "create-product-brief"},
     "execution": {"goal-mode", "guided-operator", "review-work", "work-on-issues"},
-    "kestrel": {"assign"},
+    "kestrel": {"assign", "cleanup", "integrate", "recover", "run", "setup", "status"},
     "productivity": {"to-questionnaire"},
 }
 EXPECTED_AGENTS = {
@@ -384,6 +384,13 @@ def main() -> None:
                 skills / skill_name / "references" / "plain-language-writing.md"
             )
 
+            if plugin_name == "kestrel":
+                openai_metadata = skills / skill_name / "agents" / "openai.yaml"
+                if not openai_metadata.is_file():
+                    fail(f"Missing Codex skill metadata: {openai_metadata.relative_to(ROOT)}")
+                if "allow_implicit_invocation: false" not in openai_metadata.read_text():
+                    fail(f"Kestrel skill must remain explicitly invoked: {openai_metadata.relative_to(ROOT)}")
+
         expected_agents = EXPECTED_AGENTS.get(plugin_name, set())
         agent_dir = plugin / "agents"
         actual_agents = (
@@ -448,11 +455,14 @@ def main() -> None:
     if not source_corpus_tests.is_file():
         fail("Missing Discovery source corpus tests")
 
-    kestrel_assign = ROOT / "plugins" / "kestrel" / "bin" / "kestrel-assign"
-    if not kestrel_assign.is_file():
-        fail("Missing plugins/kestrel/bin/kestrel-assign")
-    if not os.access(kestrel_assign, os.X_OK):
-        fail("plugins/kestrel/bin/kestrel-assign must be executable")
+    kestrel = ROOT / "plugins" / "kestrel"
+    codex_manifest = read_json(kestrel / ".codex-plugin" / "plugin.json")
+    if codex_manifest.get("name") != "kestrel" or codex_manifest.get("skills") != "./skills/":
+        fail("Kestrel Codex plugin manifest is invalid")
+    for executable in ("kestrel-assign", "kestrel-plugin"):
+        path = kestrel / "bin" / executable
+        if not path.is_file() or not os.access(path, os.X_OK):
+            fail(f"Missing executable plugins/kestrel/bin/{executable}")
 
     for path in ROOT.rglob("*"):
         if path.is_file() and ".git" not in path.parts:

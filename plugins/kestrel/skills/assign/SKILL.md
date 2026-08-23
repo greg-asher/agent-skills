@@ -15,6 +15,7 @@ Treat this invocation context as the starting point:
 ## Write in plain language
 
 Read [the plain-language writing guide](references/plain-language-writing.md) before writing the assignment or reporting the result.
+Read [the shared Kestrel lifecycle contract](../../references/lifecycle.md).
 
 ## 1. Establish the assignment
 
@@ -41,10 +42,10 @@ Write the complete assignment to a unique temporary Markdown file. Keep user con
 Run the plugin executable:
 
 ```bash
-kestrel-assign \
+"${CLAUDE_PLUGIN_ROOT}/bin/kestrel-plugin" assign \
   --workspace "<absolute-git-root>" \
   --task-file "<absolute-task-file>" \
-  --state-dir "${CLAUDE_PLUGIN_DATA}/assignments"
+  --state-dir "${CLAUDE_PLUGIN_DATA}/kestrel"
 ```
 
 Use `--profile <id>` or `--approval-pack <dev|ci_bot|production>` only when the user supplies an override. The defaults are the `kestrel` profile and `dev` approval pack.
@@ -72,6 +73,6 @@ For a completed assignment, report:
 - the managed worktree or changed-files location when the output identifies it
 - the replay command
 
-For a failed or waiting assignment, report the specific blocker or failure, the durable output path, and the replay and doctor commands. Do not describe a started process as completed work.
+For a failed or waiting assignment, report the specific blocker or failure, the durable manifest and output paths, and the replay and doctor commands. Do not describe a started process as completed work.
 
 Do not merge, push, publish, or continue implementing locally unless the user separately asks for that action.

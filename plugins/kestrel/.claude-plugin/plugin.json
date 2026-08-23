@@ -1,6 +1,6 @@
 {
   "name": "kestrel",
-  "description": "Assign implementation work to Kestrel for autonomous completion in a managed worktree.",
+  "description": "Run the complete Kestrel managed-work lifecycle from setup through safe local integration and cleanup.",
   "author": {
     "name": "Greg Asher",
     "url": "https://github.com/greg-asher"
@@ -11,6 +11,9 @@
   "keywords": [
     "kestrel",
     "delegation",
+    "installation",
+    "recovery",
+    "integration",
     "autonomous-development",
     "managed-worktrees"
   ]
