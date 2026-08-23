@@ -66,7 +66,7 @@ function assign(options) {
   const root = stateRoot(options); mkdirSync(join(root, "runs"), { recursive: true });
   const taskHash = createHash("sha256").update(`${workspaceRoot}\0${task}`).digest("hex");
   const reusable = matchingRun(root, taskHash);
-  if (reusable && !options.newRun) { printSummary(reusable.dir, reusable.manifest, readJson(join(reusable.dir, "output.json"))); return { code: lifecycleCode(reusable.manifest.lifecycle), manifest: reusable.manifest }; }
+  if (reusable && !options.newRun) { const manifest = resolveCompletedResultHandle(reusable.dir, reusable.manifest, options.kestrelBin ?? "kestrel"); printSummary(reusable.dir, manifest, readJson(join(reusable.dir, "output.json"))); return { code: lifecycleCode(manifest.lifecycle), manifest }; }
   const sourceRevision = git(workspaceRoot, ["rev-parse", "HEAD"]).stdout.trim();
   const sessionId = options.session ?? sessionName(task); validateId(sessionId);
   const dir = join(root, "runs", sessionId); if (existsSync(dir)) throw new Error(`Assignment already exists: ${dir}`); mkdirSync(dir);
@@ -77,7 +77,7 @@ function assign(options) {
   const child = spawn(kestrelBin, ["job", "run", "--json-in", inputPath, "--json-out", outputPath], workspaceRoot, true);
   const output = readJson(outputPath);
   if (!output) { manifest = update(dir, manifest, { lifecycle: "INTERRUPTED", error: "Kestrel produced no durable output" }); printSummary(dir, manifest); return { code: child.status || 1, manifest }; }
-  manifest = fromOutput(dir, manifest, output); printSummary(dir, manifest, output); return { code: lifecycleCode(manifest.lifecycle), manifest };
+  manifest = fromOutput(dir, manifest, output); manifest = resolveCompletedResultHandle(dir, manifest, kestrelBin); printSummary(dir, manifest, output); return { code: lifecycleCode(manifest.lifecycle), manifest };
 }
 
 function status(options) {
@@ -108,10 +108,13 @@ function integrate(options) {
   const found = requireRun(options); let manifest = found.manifest;
   if (["INTEGRATED", "CLEANED"].includes(manifest.lifecycle)) return { code: 0, manifest };
   if (manifest.lifecycle !== "COMPLETED_ISOLATED") throw new Error(`Run is not completed and isolated: ${manifest.lifecycle}`);
+  manifest = resolveCompletedResultHandle(found.dir, manifest, options.kestrelBin ?? "kestrel");
   const target = gitRoot(options.workspace ?? manifest.workspaceRoot), worktree = manifest.worktreePath;
-  if (!worktree || !existsSync(worktree)) throw new Error("Completed run does not identify an existing managed worktree");
+  if (!worktree || !existsSync(worktree)) throw new Error(`Completed run result is not recoverable from its durable replay evidence; inspect ${manifest.replay?.commands?.replay ?? `kestrel runtime replay --run-id '${manifest.runId ?? "<run-id>"}'`} and retain ${found.dir}`);
   const targetChanges = changed(target), resultChanges = changedSince(worktree, manifest.sourceRevision), overlap = targetChanges.filter((path) => resultChanges.includes(path));
   if (overlap.length) throw new Error(`Target has overlapping changes: ${overlap.join(", ")}`);
+  const expectedChanges = manifest.resultHandle?.changedFiles;
+  if (Array.isArray(expectedChanges) && !samePaths(expectedChanges, resultChanges)) throw new Error(`Managed result scope differs from durable replay evidence: expected [${[...expectedChanges].sort().join(", ")}], observed [${[...resultChanges].sort().join(", ")}]`);
   let resultRevision = manifest.resultRevision;
   if (changed(worktree).length) { git(worktree, ["add", "--all"]); const committed = git(worktree, ["commit", "-m", `Kestrel result: ${manifest.sessionId}`], true); if (committed.status !== 0) throw new Error(`Could not commit managed result: ${committed.stderr.trim()}`); resultRevision = git(worktree, ["rev-parse", "HEAD"]).stdout.trim(); }
   resultRevision ??= git(worktree, ["rev-parse", "HEAD"]).stdout.trim(); if (resultRevision === manifest.sourceRevision) throw new Error("Completed run contains no result changes");
@@ -121,7 +124,7 @@ function integrate(options) {
   const before = git(target, ["rev-parse", "HEAD"]).stdout.trim(), cherry = git(target, ["cherry-pick", resultRevision], true);
   if (cherry.status !== 0) { git(target, ["cherry-pick", "--abort"], true); throw new Error(`Integration conflict; target restored to ${before}`); }
   const integratedRevision = git(target, ["rev-parse", "HEAD"]).stdout.trim();
-  manifest = update(found.dir, manifest, { lifecycle: "INTEGRATED", resultHeadRevision, resultRevision, integration: { status: "COMPLETED", target, beforeRevision: before, integratedRevision, integratedAt: new Date().toISOString() } });
+  manifest = update(found.dir, manifest, { lifecycle: "INTEGRATED", resultHeadRevision, resultRevision, integration: { ...manifest.integration, status: "COMPLETED", target, beforeRevision: before, integratedRevision, integratedAt: new Date().toISOString() } });
   report(options, { status: "INTEGRATED", resultRevision, integratedRevision, assignmentDir: found.dir }, 0); return { code: 0, manifest };
 }
 
@@ -148,20 +151,22 @@ function runLifecycle(options) {
     assigned = { code: 0, manifest: requireRun({ ...options, session: assigned.manifest.sessionId }).manifest };
   }
   if (assigned.code !== 0) return assigned.code;
+  const validationCode = validateRunResult({ ...options, session: assigned.manifest.sessionId }); if (validationCode !== 0) return validationCode;
   const integrated = integrate({ ...options, session: assigned.manifest.sessionId }); if (integrated.code !== 0) return integrated.code;
-  const validationCode = validateIntegratedRun({ ...options, session: assigned.manifest.sessionId }); if (validationCode !== 0) return validationCode;
   return cleanup({ ...options, session: assigned.manifest.sessionId });
 }
 
-function validateIntegratedRun(options) {
+function validateRunResult(options) {
   const found = requireRun(options);
   if (!options.validationFile) return report(options, { status: "VALIDATION_EVIDENCE_REUSED", validation: found.manifest.validation }, 0);
   const commands = readJson(resolve(options.validationFile));
   if (!Array.isArray(commands) || commands.some((args) => !Array.isArray(args) || !args.length || args.some((value) => typeof value !== "string"))) throw new Error("--validation-file must contain an array of non-empty argument arrays");
+  const validationRoot = found.manifest.lifecycle === "COMPLETED_ISOLATED" ? found.manifest.worktreePath : found.manifest.workspaceRoot;
+  if (!validationRoot || !existsSync(validationRoot)) throw new Error(`Completed run cannot be validated because its result location is unavailable; retain ${found.dir}`);
   const results = [];
   for (const args of commands) {
-    const result = spawn(args[0], args.slice(1), found.manifest.workspaceRoot, true);
-    results.push({ command: args, status: result.status });
+    const result = spawn(args[0], args.slice(1), validationRoot, true);
+    results.push({ command: args, status: result.status, cwd: validationRoot });
     if (result.status !== 0) { update(found.dir, found.manifest, { validation: results, integration: { ...found.manifest.integration, validationStatus: "FAILED" } }); return report(options, { status: "VALIDATION_FAILED", command: args, assignmentDir: found.dir }, 1); }
   }
   update(found.dir, found.manifest, { validation: results, integration: { ...found.manifest.integration, validationStatus: "PASSED" } });
@@ -175,6 +180,7 @@ function parseArguments(args) {
 }
 function jobInput(options, root, task, sessionId) { return { version:"job_input_v1", profileId:options.profile??"kestrel", approvalPolicyPackId:options.approvalPack??"dev", turn:{ sessionId,eventType:"job.run",message:task,noninteractive:true,stepAgent:"agent.loop",interactionMode:"build",actSubmode:"full_auto",systemInstructions:["Complete the assigned repository task end to end. Implement the change, validate it, and report the result.","Work only in the managed Kestrel worktree. Do not merge, push, publish, or deploy unless the assignment explicitly requires it.","If missing authority or information prevents responsible completion, stop with one specific blocker instead of guessing."],workspace:{workspaceId:workspaceId(root),workspaceRoot:root,launchCwd:root,appRoot:".",commands:{},label:basename(root),managedWorktreeRequired:true,managedWorktreeIsolation:"session",sourceWorkspaceRoot:root,managedWorktreeBaseRef:"HEAD"}}}; }
 function fromOutput(dir, manifest, output) { const job=output?.job??{}, detail=job?.result?.output??{}, map={COMPLETED:"COMPLETED_ISOLATED",WAITING:"WAITING",RUNNING:"RUNNING",FAILED:"FAILED"}; return update(dir,manifest,{lifecycle:map[job.status]??"FAILED",threadId:job.threadId??manifest.threadId,runId:job.runId??manifest.runId,replay:job.replay??manifest.replay,worktreePath:detail.worktreePath??detail.managedWorktreePath??manifest.worktreePath,resultRevision:detail.resultRevision??detail.commit??manifest.resultRevision,validation:detail.validation??manifest.validation}); }
+function resolveCompletedResultHandle(dir,manifest,bin){if(manifest.lifecycle!=="COMPLETED_ISOLATED"||manifest.worktreePath)return manifest;if(!manifest.runId)return update(dir,manifest,{resultHandle:{status:"UNAVAILABLE",reason:"missing_run_id"}});const replay=spawn(bin,["runtime","replay","--run-id",manifest.runId,"--json"],manifest.workspaceRoot);if(replay.status!==0)return update(dir,manifest,{resultHandle:{status:"UNAVAILABLE",reason:"replay_failed",message:replay.stderr.trim()}});let parsed;try{parsed=JSON.parse(replay.stdout);}catch{return update(dir,manifest,{resultHandle:{status:"UNAVAILABLE",reason:"replay_invalid_json"}});}const allowed=new Set(["managed_worktree.promotion_candidate","managed_worktree.fan_in_candidate"]),candidates=(Array.isArray(parsed?.events)?parsed.events:[]).filter(event=>event?.runId===manifest.runId&&event?.sessionId===manifest.sessionId&&allowed.has(event?.type)).map(event=>({event,metadata:event?.metadata??{}})).filter(({metadata})=>typeof metadata.worktreeRoot==="string"&&metadata.worktreeRoot&&typeof metadata.sourceWorkspaceRoot==="string"&&metadata.sourceWorkspaceRoot&&typeof metadata.baseHead==="string"&&metadata.baseHead&&metadata.scope?.kind==="sessionId"&&metadata.scope?.value===manifest.sessionId&&Array.isArray(metadata.changedFiles)&&metadata.changedFiles.length>0&&metadata.changedFiles.every(path=>typeof path==="string"&&path.length>0));const roots=[...new Set(candidates.map(({metadata})=>canonicalExistingPath(metadata.worktreeRoot)).filter(Boolean))];if(roots.length!==1)return update(dir,manifest,{resultHandle:{status:"UNAVAILABLE",reason:roots.length===0?"candidate_missing":"candidate_ambiguous"}});const candidate=[...candidates].reverse().find(({metadata})=>canonicalExistingPath(metadata.worktreeRoot)===roots[0])?.metadata,sourceRoot=candidate?canonicalExistingPath(candidate.sourceWorkspaceRoot):undefined;if(!candidate||sourceRoot!==canonicalExistingPath(manifest.workspaceRoot)||candidate.baseHead!==manifest.sourceRevision)return update(dir,manifest,{resultHandle:{status:"UNAVAILABLE",reason:"candidate_invalid"}});const resultHandle={version:"kestrel_plugin_managed_result_v1",status:"RESOLVED",source:"managed_worktree_replay",runId:manifest.runId,sessionId:manifest.sessionId,worktreePath:roots[0],sourceWorkspaceRoot:sourceRoot,baseHead:candidate.baseHead,changedFiles:[...new Set(candidate.changedFiles)],...(typeof candidate.candidateFingerprint==="string"?{candidateFingerprint:candidate.candidateFingerprint}:{}),...(typeof candidate.promotionId==="string"?{promotionId:candidate.promotionId}:{}),resolvedAt:new Date().toISOString()};return update(dir,manifest,{worktreePath:roots[0],resultHandle});}
 function stateRoot(options={}) { if(options.stateDir)return resolve(options.stateDir); if(process.env.CLAUDE_PLUGIN_DATA)return join(process.env.CLAUDE_PLUGIN_DATA,"kestrel"); return join(process.env.CODEX_HOME??join(homedir(),".codex"),"plugin-data","kestrel"); }
 function findRun(root,options) { const runs=join(root,"runs"); if(!existsSync(runs))return undefined; const all=readdirSync(runs).map(name=>({dir:join(runs,name),manifest:readJson(join(runs,name,"manifest.json"))})).filter(x=>x.manifest); return options.session?all.find(x=>x.manifest.sessionId===options.session):options.runId?all.find(x=>x.manifest.runId===options.runId):all.sort((a,b)=>b.manifest.updatedAt.localeCompare(a.manifest.updatedAt))[0]; }
 function requireRun(options){const found=findRun(stateRoot(options),options);if(!found)throw new Error("No matching Kestrel run found");return found;}
@@ -189,8 +195,10 @@ function git(cwd,args,allow=false){const result=spawn("git",["-C",cwd,...args],c
 function spawn(bin,args,cwd,show=false){const result=spawnSync(bin,args,{cwd,env:process.env,encoding:"utf8",maxBuffer:16*1024*1024});if(show){if(result.stdout)process.stdout.write(result.stdout);if(result.stderr)process.stderr.write(result.stderr);}return{status:result.status??(result.error?1:0),stdout:result.stdout??"",stderr:result.stderr??String(result.error??"")};}
 function probeVersion(bin,cwd){const result=spawn(bin,["--version"],cwd);return result.status===0?result.stdout.trim():undefined;}
 function resolveStableVersion(npmBin){const result=spawn(npmBin,["view",PACKAGE,"version","--json"]);if(result.status!==0)throw new Error(`Could not resolve stable Kestrel version: ${result.stderr.trim()}`);const version=JSON.parse(result.stdout);if(typeof version!=="string"||version.includes("-"))throw new Error(`npm stable resolved a prerelease: ${String(version)}`);return version;}
-function changed(cwd){return git(cwd,["status","--porcelain"]).stdout.split("\n").filter(Boolean).map(line=>line.slice(3));}
+function changed(cwd){return git(cwd,["status","--porcelain","--untracked-files=all"]).stdout.split("\n").filter(Boolean).map(line=>line.slice(3));}
 function changedSince(cwd,base){return[...new Set([...git(cwd,["diff","--name-only",base]).stdout.split("\n").filter(Boolean),...changed(cwd)])];}
+function samePaths(first,second){const a=[...new Set(first)].sort(),b=[...new Set(second)].sort();return a.length===b.length&&a.every((path,index)=>path===b[index]);}
+function canonicalExistingPath(path){try{return realpathSync(resolve(path));}catch{return undefined;}}
 function workspaceId(root){return`${slug(basename(root))||"workspace"}-${createHash("sha256").update(root).digest("hex").slice(0,8)}`;}
 function sessionName(task){const label=slug(task.split(/\s+/u).slice(0,6).join(" ")).slice(0,42)||"assignment",stamp=new Date().toISOString().replace(/[-:TZ.]/gu,"").slice(0,14);return`assign-${label}-${stamp}-${randomBytes(3).toString("hex")}`;}
 function slug(value){return value.toLowerCase().replace(/[^a-z0-9]+/gu,"-").replace(/^-+|-+$/gu,"");}
