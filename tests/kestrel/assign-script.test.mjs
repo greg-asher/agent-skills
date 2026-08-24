@@ -28,9 +28,10 @@ test("kestrel-assign submits a full-auto managed-worktree job and preserves its 
 
     assert.equal(input.version, "job_input_v2");
     assert.equal(input.environmentPresetId, "cli_dev_local");
-    assert.equal(input.profileId, "kestrel:cli_dev_local:fixture");
+    assert.equal(input.profileId, "kestrel");
     assert.equal(input.approvalPolicyPackId, "dev");
-    assert.equal(input.executionProfileBinding.resolvedProfileId, input.profileId);
+    assert.equal(Object.hasOwn(input, "runtimeConfig"), false);
+    assert.equal(input.executionProfileBinding.resolvedProfileId, "kestrel:cli_dev_local:fixture");
     assert.equal(input.executionProfileBinding.profileFingerprint, "a".repeat(64));
     assert.equal(input.turn.message, "Implement sample behavior.\nValidate it.");
     assert.equal(input.turn.interactionMode, "build");
