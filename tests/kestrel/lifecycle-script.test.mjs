@@ -128,6 +128,47 @@ if (args[0] === 'job') {
   } finally { rmSync(fixture, { recursive: true, force: true }); }
 });
 
+test("doctor and assignment propagate one authoritative state directory", () => {
+  const fixture = temp("state-contract"), workspace = repository(fixture), state = join(fixture, "state"), task = join(fixture, "task.md");
+  writeFileSync(task, "Use the configured runtime.\n", "utf8");
+  const kestrel = executable(fixture, "state-contract-kestrel", `
+import { readFileSync, writeFileSync } from 'node:fs';
+const args = process.argv.slice(2);
+if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
+if (args.includes('--version')) { process.stdout.write('kestrel 9.9.9'); process.exit(0); }
+if (args[0] === 'core') process.exit(0);
+if (args[0] === 'job') {
+  writeFileSync(process.env.RUNTIME_CAPTURE, JSON.stringify({ args, env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key.startsWith('KESTREL_'))) }));
+  const input = JSON.parse(readFileSync(args[args.indexOf('--json-in') + 1], 'utf8'));
+  writeFileSync(args[args.indexOf('--json-out') + 1], JSON.stringify({ job: { status: 'WAITING', sessionId: input.turn.sessionId, runId: 'run-state' } }));
+}
+`);
+  const capture = join(fixture, "capture.json");
+  try {
+    const env = { ...process.env, RUNTIME_CAPTURE: capture };
+    const doctor = spawnSync(process.execPath, [RUNTIME, "doctor", "--workspace", workspace, "--state-dir", state, "--kestrel-bin", kestrel, "--allow-test-node", "--allow-test-platform", "--json"], { encoding: "utf8", env });
+    assert.equal(doctor.status, 0, doctor.stderr); const report = JSON.parse(doctor.stdout);
+    assert.equal(report.status, "READY"); assert.equal(report.runtimeConfig.coreStateDir, join(state, "core"));
+    const assigned = spawnSync(process.execPath, [RUNTIME, "assign", "--workspace", workspace, "--task-file", task, "--state-dir", state, "--kestrel-bin", kestrel, "--allow-test-node", "--allow-test-platform"], { encoding: "utf8", env });
+    assert.equal(assigned.status, 2, assigned.stderr); const saved = JSON.parse(readFileSync(capture, "utf8"));
+    assert.equal(saved.env.KESTREL_STATE_DIR, resolve(state)); assert.equal(saved.env.KESTREL_CORE_LOG_DIR, join(resolve(state), "core", "logs"));
+    assert.equal(saved.args.includes("--state-dir"), true); assert.equal(saved.args[saved.args.indexOf("--state-dir") + 1], resolve(state));
+  } finally { rmSync(fixture, { recursive: true, force: true }); }
+});
+
+test("assignment stops before job run when derived Local Core state is not writable", () => {
+  const fixture = temp("setup-failed"), workspace = repository(fixture), state = join(fixture, "state"), task = join(fixture, "task.md");
+  mkdirSync(state); writeFileSync(join(state, "core"), "not a directory\n", "utf8"); writeFileSync(task, "This must not run.\n", "utf8");
+  const kestrel = executable(fixture, "must-not-run-kestrel", `if (process.argv.includes('job')) process.exit(99); if (process.argv.includes('--help')) process.stdout.write('status workspace job setup runtime'); if (process.argv.includes('--version')) process.stdout.write('kestrel 1.0.0');`);
+  try {
+    const result = runtime(["assign", "--workspace", workspace, "--task-file", task, "--state-dir", state, "--session", "session-one", "--kestrel-bin", kestrel, "--json"]);
+    assert.equal(result.status, 3, result.stderr); const output = JSON.parse(result.stdout);
+    assert.equal(output.status, "SETUP_FAILED"); assert.equal(output.failedPhase, "localCoreState"); assert.equal(output.noMutation.managedWorktree, true);
+    const manifest = JSON.parse(readFileSync(join(state, "runs", "session-one", "manifest.json"), "utf8"));
+    assert.equal(manifest.lifecycle, "SETUP_FAILED"); assert.equal(manifest.managedWorktreeCreated, false); assert.equal(manifest.noMutation.repositoryFiles, true);
+  } finally { rmSync(fixture, { recursive: true, force: true }); }
+});
+
 function manifest({ workspace, worktree = null, source, resultRevision = null, lifecycle }) {
   return { version: "kestrel_plugin_run_v1", sessionId: "session-one", workspaceRoot: workspace, sourceRevision: source ?? run("git", ["-C", workspace, "rev-parse", "HEAD"]).stdout.trim(), lifecycle, worktreePath: worktree, resultRevision, recoveryAttempts: 0, validation: [], integration: { status: "NOT_STARTED" }, cleanup: { status: "NOT_STARTED" }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
 }
