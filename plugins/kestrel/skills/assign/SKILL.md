@@ -48,15 +48,18 @@ Run the plugin executable:
   --state-dir "${CLAUDE_PLUGIN_DATA}/kestrel"
 ```
 
-Use `--profile <id>` or `--approval-pack <dev|ci_bot|production>` only when the user supplies an override. The defaults are the `kestrel` profile and `dev` approval pack.
+Use `--profile <id>` only when the user supplies an override. The wrapper always requires the resolved `cli_dev_local` preset and `dev` approval pack for managed repository work.
 
-The wrapper submits Kestrel's supported `job_input_v1` contract with:
+Before it creates an assignment, the wrapper runs the read-only Kestrel job preflight. A missing `exec_command`, wrong preset, or incompatible Kestrel returns `SETUP_REQUIRED` or `COMPATIBILITY_ERROR` without creating a managed worktree. The wrapper submits `job_input_v2` with:
 
 - build interaction mode
 - full-auto execution
 - noninteractive completion
 - a session-isolated managed worktree
 - durable input and output files
+- the immutable profile identity returned by preflight
+- host `exec_command` for repository implementation; never sandbox `code.execute`
+- any validation argument arrays rendered exactly into the assignment
 
 Let the command reach a terminal result. If the shell moves a long-running process into the background, continue monitoring that process instead of starting another assignment.
 

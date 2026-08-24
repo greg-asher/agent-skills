@@ -26,8 +26,9 @@ test("kestrel-assign submits a full-auto managed-worktree job and preserves its 
     const input = JSON.parse(readFileSync(join(assignmentDir, "input.json"), "utf8"));
     const output = JSON.parse(readFileSync(join(assignmentDir, "output.json"), "utf8"));
 
-    assert.equal(input.version, "job_input_v1");
-    assert.equal(input.profileId, "kestrel");
+    assert.equal(input.version, "job_input_v2");
+    assert.equal(input.environmentPresetId, "cli_dev_local");
+    assert.equal(input.profileId, "kestrel:cli_dev_local:fixture");
     assert.equal(input.approvalPolicyPackId, "dev");
     assert.equal(input.turn.message, "Implement sample behavior.\nValidate it.");
     assert.equal(input.turn.interactionMode, "build");
@@ -36,6 +37,7 @@ test("kestrel-assign submits a full-auto managed-worktree job and preserves its 
     assert.equal(input.turn.workspace.workspaceRoot, realpathSync(fixture.workspace));
     assert.equal(input.turn.workspace.managedWorktreeRequired, true);
     assert.equal(input.turn.workspace.managedWorktreeIsolation, "session");
+    assert.match(input.turn.systemInstructions.join("\n"), /host exec_command/u);
     assert.equal(output.job.status, "COMPLETED");
     assert.match(result.stdout, /status=COMPLETED/u);
     assert.match(result.stdout, /run=run-test/u);
@@ -44,6 +46,16 @@ test("kestrel-assign submits a full-auto managed-worktree job and preserves its 
   } finally {
     rmSync(fixture.root, { recursive: true, force: true });
   }
+});
+
+test("kestrel-assign fails before assignment when job preflight is unsatisfied", () => {
+  const fixture = createFixture("COMPLETED");
+  try {
+    const result = spawnSync(process.execPath, [WRAPPER, "--workspace", fixture.workspace, "--task-file", fixture.taskFile, "--state-dir", fixture.stateDir, "--kestrel-bin", fixture.fakeKestrel, "--json"], { cwd:resolve("."), encoding:"utf8", env:{...process.env,FAKE_KESTREL_PREFLIGHT:"missing-tool"} });
+    assert.equal(result.status, 3, result.stderr);
+    assert.equal(JSON.parse(result.stdout).status, "SETUP_REQUIRED");
+    assert.deepEqual(readdirSync(join(fixture.stateDir, "runs")), []);
+  } finally { rmSync(fixture.root, { recursive:true, force:true }); }
 });
 
 test("kestrel-assign returns a distinct status when Kestrel is waiting", () => {
@@ -119,6 +131,11 @@ const args = process.argv.slice(2);
 const inputPath = args[args.indexOf("--json-in") + 1];
 const outputPath = args[args.indexOf("--json-out") + 1];
 const input = JSON.parse(readFileSync(inputPath, "utf8"));
+if (args[0] === "job" && args[1] === "preflight") {
+  const missing = process.env.FAKE_KESTREL_PREFLIGHT === "missing-tool";
+  writeFileSync(outputPath, JSON.stringify({version:"job_preflight_v1",status:missing?"setup_required":"ready",requestedPresetId:"cli_dev_local",resolvedPresetId:"cli_dev_local",profileId:"kestrel:cli_dev_local:fixture",profileFingerprint:"fixture",approvalPolicyPackId:"dev",policyRevision:"cli_dev_local:v1",effectiveTools:missing?[]:["exec_command"],requiredTools:["exec_command"],missingTools:missing?["exec_command"]:[],...(missing?{code:"SETUP_REQUIRED",remediation:"Enable exec_command"}:{})}));
+  process.exit(missing ? 1 : 0);
+}
 const status = process.env.FAKE_KESTREL_STATUS ?? "COMPLETED";
 const output = {
   version: "job_output_v1",

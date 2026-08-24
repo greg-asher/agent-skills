@@ -81,6 +81,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const args = process.argv.slice(2);
 if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
 if (args.includes('--version')) { process.stdout.write('kestrel 1.2.3'); process.exit(0); }
+if (args[0] === 'job' && args[1] === 'preflight') { const input=JSON.parse(readFileSync(args[args.indexOf('--json-in')+1],'utf8')); writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'fixture',approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[]})); process.exit(0); }
 if (args[0] === 'workspace') process.exit(1);
 if (args[0] === 'runtime' && args[1] === 'replay') {
   process.stdout.write(JSON.stringify({events:[{runId:'run-one',sessionId:'session-one',type:'managed_worktree.promotion_candidate',metadata:{worktreeRoot:${JSON.stringify(worktree)},sourceWorkspaceRoot:${JSON.stringify(workspace)},baseHead:${JSON.stringify(sourceRevision)},scope:{kind:'sessionId',value:'session-one'},changedFiles:['delivered/one.txt','delivered/two.txt'],candidateFingerprint:'candidate-one',promotionId:'promotion-one'}}]}));
@@ -111,6 +112,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const args = process.argv.slice(2);
 if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
 if (args.includes('--version')) { process.stdout.write('kestrel 1.2.3'); process.exit(0); }
+if (args[0] === 'job' && args[1] === 'preflight') { writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'fixture',approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[]})); process.exit(0); }
 if (args[0] === 'runtime' && args[1] === 'replay') { process.stdout.write('{"events":[]}'); process.exit(0); }
 if (args[0] === 'job') {
   const input = JSON.parse(readFileSync(args[args.indexOf('--json-in') + 1], 'utf8'));
@@ -137,6 +139,7 @@ const args = process.argv.slice(2);
 if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
 if (args.includes('--version')) { process.stdout.write('kestrel 9.9.9'); process.exit(0); }
 if (args[0] === 'core') process.exit(0);
+if (args[0] === 'job' && args[1] === 'preflight') { writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'fixture',approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[]})); process.exit(0); }
 if (args[0] === 'job') {
   writeFileSync(process.env.RUNTIME_CAPTURE, JSON.stringify({ args, env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key.startsWith('KESTREL_'))) }));
   const input = JSON.parse(readFileSync(args[args.indexOf('--json-in') + 1], 'utf8'));
