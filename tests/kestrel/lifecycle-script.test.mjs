@@ -116,8 +116,10 @@ if (args[0] === 'status') { process.stdout.write('Kestrel Local Core: healthy');
 if (args[0] === 'job' && args[1] === 'preflight') { const input=JSON.parse(readFileSync(args[args.indexOf('--json-in')+1],'utf8')); writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',capability:'local-core.execution-profile-resolution.v2',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),approvalPolicyPackId:'dev',policyRevision:'kestrel:v1/cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[],executionProfileBinding:{version:'job_execution_profile_binding_v1',authoringProfileId:'kestrel',environmentPresetId:'cli_dev_local',resolvedProfileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),policy:{id:'kestrel',version:1},approvalPolicyPack:{id:'dev',version:1,digest:'b'.repeat(64)}}})); process.exit(0); }
 if (args[0] === 'workspace') process.exit(1);
 if (args[0] === 'runtime' && args[1] === 'replay') {
-  process.stdout.write(JSON.stringify({events:[{runId:'run-one',sessionId:'session-one',type:'managed_worktree.promotion_candidate',metadata:{worktreeRoot:${JSON.stringify(worktree)},sourceWorkspaceRoot:${JSON.stringify(workspace)},baseHead:${JSON.stringify(sourceRevision)},scope:{kind:'sessionId',value:'session-one'},changedFiles:['delivered/one.txt','delivered/two.txt'],candidateFingerprint:'candidate-one',promotionId:'promotion-one'}}]}));
-  process.exit(0);
+  const candidate={runId:'run-one',sessionId:'session-one',type:'managed_worktree.promotion_candidate',metadata:{worktreeRoot:${JSON.stringify(worktree)},sourceWorkspaceRoot:${JSON.stringify(workspace)},baseHead:${JSON.stringify(sourceRevision)},scope:{kind:'sessionId',value:'session-one'},changedFiles:['delivered/one.txt','delivered/two.txt'],candidateFingerprint:'candidate-one',promotionId:'promotion-one'}};
+  const eventTypes=args.flatMap((value,index)=>value==='--event-type'?[args[index+1]]:[]);
+  const events=eventTypes.length>0?[candidate]:[{runId:'run-one',sessionId:'session-one',type:'run.progress',metadata:{payload:'x'.repeat(17*1024*1024)}},candidate];
+  writeFileSync(1, JSON.stringify({events}));
 }
 if (args[0] === 'job') {
   const input = JSON.parse(readFileSync(args[args.indexOf('--json-in') + 1], 'utf8'));
@@ -126,6 +128,10 @@ if (args[0] === 'job') {
 }
 `);
   try {
+    const oversizedReplay = spawnSync(kestrel, ["runtime", "replay", "--run-id", "run-one", "--json"], { encoding: "utf8", maxBuffer: 24 * 1024 * 1024 });
+    assert.equal(oversizedReplay.status, 0, oversizedReplay.stderr);
+    assert.equal(Buffer.byteLength(oversizedReplay.stdout) > 16 * 1024 * 1024, true);
+    assert.match(oversizedReplay.stdout, /managed_worktree\.promotion_candidate/u);
     const result = runtime(["run", "--workspace", workspace, "--task-file", task, "--validation-file", validation, "--state-dir", state, "--session", "session-one", "--kestrel-bin", kestrel, "--json"]);
     const actualRun = join(state, "runs", readdirSync(join(state, "runs"))[0]);
     assert.equal(result.status, 0, `${result.stderr}\n${readFileSync(join(actualRun, "manifest.json"), "utf8")}`); assert.equal(readFileSync(join(workspace, "delivered", "one.txt"), "utf8"), "one\n"); assert.equal(readFileSync(join(workspace, "delivered", "two.txt"), "utf8"), "two\n");
@@ -138,6 +144,36 @@ if (args[0] === 'job') {
     assert.equal(assignedInput.turn.systemInstructions.join("\n").includes(JSON.stringify(expectedCommands)), true);
     assert.equal(saved.lifecycle, "CLEANED"); assert.equal(saved.integration.validationStatus, "PASSED"); assert.equal(saved.resultHandle.source, "managed_worktree_replay"); assert.deepEqual(saved.resultHandle.changedFiles, ["delivered/one.txt", "delivered/two.txt"]);
     assert.equal(run("git", ["-C", workspace, "status", "--porcelain"]).stdout.includes("?? unrelated/"), true);
+  } finally { rmSync(fixture, { recursive: true, force: true }); }
+});
+
+test("run uses the completed job result handle without replay fallback", () => {
+  const fixture = temp("direct-result"), workspace = repository(fixture), worktree = join(fixture, "managed"), state = join(fixture, "state"), task = join(fixture, "task.md");
+  run("git", ["-C", workspace, "worktree", "add", "-q", "--detach", worktree]);
+  writeFileSync(join(worktree, "delivered.txt"), "direct result\n", "utf8");
+  const sourceRevision = run("git", ["-C", workspace, "rev-parse", "HEAD"]).stdout.trim();
+  writeFileSync(task, "Deliver the direct result.\n", "utf8");
+  const kestrel = executable(fixture, "fake-direct-result-kestrel", `
+import { readFileSync, writeFileSync } from 'node:fs';
+const args = process.argv.slice(2);
+if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
+if (args.includes('--version')) { process.stdout.write('kestrel 1.2.3'); process.exit(0); }
+if (args[0] === 'job' && args[1] === 'preflight') { writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',capability:'local-core.execution-profile-resolution.v2',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[],executionProfileBinding:{version:'job_execution_profile_binding_v1',authoringProfileId:'kestrel',environmentPresetId:'cli_dev_local',resolvedProfileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),policy:{id:'kestrel',version:1},approvalPolicyPack:{id:'dev',version:1,digest:'b'.repeat(64)}}})); process.exit(0); }
+if (args[0] === 'runtime' && args[1] === 'replay') process.exit(91);
+if (args[0] === 'job') {
+  const input = JSON.parse(readFileSync(args[args.indexOf('--json-in') + 1], 'utf8'));
+  const resultHandle={version:'job_managed_result_handle_v1',kind:'managed_worktree',worktreePath:${JSON.stringify(worktree)},sourceWorkspaceRoot:${JSON.stringify(workspace)},baseRevision:${JSON.stringify(sourceRevision)},candidateRevision:'candidate-direct',changedFiles:['delivered.txt'],promotionId:'promotion-direct'};
+  writeFileSync(args[args.indexOf('--json-out') + 1], JSON.stringify({job:{status:'COMPLETED',sessionId:input.turn.sessionId,threadId:'thread-direct',runId:'run-direct',resultHandle,result:{assistantText:'done',output:{status:'COMPLETED',sessionId:input.turn.sessionId,runId:'run-direct'}}}}));
+}
+`);
+  try {
+    const result = runtime(["run", "--workspace", workspace, "--task-file", task, "--state-dir", state, "--session", "session-direct", "--kestrel-bin", kestrel, "--json"]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(readFileSync(join(workspace, "delivered.txt"), "utf8"), "direct result\n");
+    const saved = JSON.parse(readFileSync(join(state, "runs", "session-direct", "manifest.json"), "utf8"));
+    assert.equal(saved.lifecycle, "CLEANED");
+    assert.equal(saved.resultHandle.source, "job_output");
+    assert.equal(saved.resultHandle.candidateFingerprint, "candidate-direct");
   } finally { rmSync(fixture, { recursive: true, force: true }); }
 });
 
@@ -165,6 +201,31 @@ if (args[0] === 'job') {
     assert.equal(saved.lifecycle, "COMPLETED_ISOLATED");
     assert.equal(saved.resultHandle.reason, "candidate_missing");
     assert.equal(run("git", ["-C", workspace, "status", "--porcelain"]).stdout, "");
+  } finally { rmSync(fixture, { recursive: true, force: true }); }
+});
+
+test("run preserves the child-process error when filtered replay still exceeds the buffer", () => {
+  const fixture = temp("replay-buffer-error"), workspace = repository(fixture), state = join(fixture, "state"), task = join(fixture, "task.md");
+  writeFileSync(task, "Deliver the fixture.\n", "utf8");
+  const kestrel = executable(fixture, "fake-replay-buffer-error-kestrel", `
+import { readFileSync, writeFileSync } from 'node:fs';
+const args = process.argv.slice(2);
+if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
+if (args.includes('--version')) { process.stdout.write('kestrel 1.2.3'); process.exit(0); }
+if (args[0] === 'job' && args[1] === 'preflight') { writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',capability:'local-core.execution-profile-resolution.v2',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[],executionProfileBinding:{version:'job_execution_profile_binding_v1',authoringProfileId:'kestrel',environmentPresetId:'cli_dev_local',resolvedProfileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),policy:{id:'kestrel',version:1},approvalPolicyPack:{id:'dev',version:1,digest:'b'.repeat(64)}}})); process.exit(0); }
+if (args[0] === 'runtime' && args[1] === 'replay') { writeFileSync(1, 'x'.repeat(17*1024*1024)); }
+if (args[0] === 'job') {
+  const input = JSON.parse(readFileSync(args[args.indexOf('--json-in') + 1], 'utf8'));
+  writeFileSync(args[args.indexOf('--json-out') + 1], JSON.stringify({job:{status:'COMPLETED',sessionId:input.turn.sessionId,threadId:'thread-one',runId:'run-one',result:{assistantText:'done',output:{status:'COMPLETED',sessionId:input.turn.sessionId,runId:'run-one'}}}}));
+}
+`);
+  try {
+    const result = runtime(["run", "--workspace", workspace, "--task-file", task, "--state-dir", state, "--session", "session-one", "--kestrel-bin", kestrel]);
+    assert.equal(result.status, 1);
+    const saved = JSON.parse(readFileSync(join(state, "runs", "session-one", "manifest.json"), "utf8"));
+    assert.equal(saved.lifecycle, "COMPLETED_ISOLATED");
+    assert.equal(saved.resultHandle.reason, "replay_failed");
+    assert.match(saved.resultHandle.message, /ENOBUFS|maxBuffer|buffer/u);
   } finally { rmSync(fixture, { recursive: true, force: true }); }
 });
 
