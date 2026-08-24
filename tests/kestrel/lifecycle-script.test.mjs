@@ -40,7 +40,7 @@ test("approved npm install retains its realpath despite an older PATH shadow and
   const installedSource = executable(binDir, "kestrel", `
 import {writeFileSync,readFileSync} from 'node:fs';
 const args=process.argv.slice(2);
-if(args.includes('--help')){process.stdout.write('status workspace job setup runtime --event-type');process.exit(0)}
+if(args.includes('--help')){process.stdout.write('status workspace job setup runtime');process.exit(0)}
 if(args.includes('--version')){process.stdout.write('kestrel 0.8.8');process.exit(0)}
 if(args[0]==='status'){process.stdout.write('Kestrel Local Core: healthy');process.exit(0)}
 if(args[0]==='job'&&args[1]==='preflight'){writeFileSync(process.env.CAPTURE,JSON.stringify({args,env:Object.fromEntries(Object.entries(process.env).filter(([key])=>key.startsWith('KESTREL_')))}));const input=JSON.parse(readFileSync(args[args.indexOf('--json-in')+1],'utf8'));writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',capability:'local-core.execution-profile-resolution.v2',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),approvalPolicyPackId:'dev',policyRevision:'kestrel:v1/cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[],executionProfileBinding:{version:'job_execution_profile_binding_v1',authoringProfileId:input.profileId,environmentPresetId:'cli_dev_local',resolvedProfileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),policy:{id:'kestrel',version:1},approvalPolicyPack:{id:'dev',version:1,digest:'b'.repeat(64)}}}));process.exit(0)}
@@ -61,7 +61,7 @@ if(args[0]==='job'&&args[1]==='preflight'){writeFileSync(process.env.CAPTURE,JSO
   } finally { rmSync(fixture,{recursive:true,force:true}); }
 });
 
-test("assignment rejects Kestrel without filtered replay support before job preflight", () => {
+test("assignment rejects Kestrel older than 0.8.8 before job preflight", () => {
   const fixture = temp("replay-capability"), workspace = repository(fixture), task = join(fixture, "task.md"), marker = join(fixture, "job-ran.txt");
   writeFileSync(task, "Deliver the fixture.\n", "utf8");
   const kestrel = executable(fixture, "fake-old-kestrel", `
@@ -118,7 +118,7 @@ test("integrate cherry-picks an exact result and cleanup retains evidence", () =
   } finally { rmSync(fixture, { recursive: true, force: true }); }
 });
 
-test("run recovers the managed result from replay, validates it before integration, and preserves unrelated files", () => {
+test("run recovers a managed result through the 0.8.8 replay bundle fallback", () => {
   const fixture = temp("run"), workspace = repository(fixture), worktree = join(fixture, "managed"), state = join(fixture, "state"), task = join(fixture, "task.md"), validation = join(fixture, "validation.json");
   run("git", ["-C", workspace, "worktree", "add", "-q", "--detach", worktree]);
   mkdirSync(join(workspace, "unrelated")); writeFileSync(join(workspace, "unrelated", "keep.txt"), "keep\n", "utf8");
@@ -129,17 +129,18 @@ test("run recovers the managed result from replay, validates it before integrati
   const kestrel = executable(fixture, "fake-run-kestrel", `
 import { readFileSync, writeFileSync } from 'node:fs';
 const args = process.argv.slice(2);
-if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime --event-type'); process.exit(0); }
-if (args.includes('--version')) { process.stdout.write('kestrel 1.2.3'); process.exit(0); }
+if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
+if (args.includes('--version')) { process.stdout.write('kestrel 0.8.8'); process.exit(0); }
 if (args[0] === 'status') { process.stdout.write('Kestrel Local Core: healthy'); process.exit(0); }
 if (args[0] === 'job' && args[1] === 'preflight') { const input=JSON.parse(readFileSync(args[args.indexOf('--json-in')+1],'utf8')); writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',capability:'local-core.execution-profile-resolution.v2',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),approvalPolicyPackId:'dev',policyRevision:'kestrel:v1/cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[],executionProfileBinding:{version:'job_execution_profile_binding_v1',authoringProfileId:'kestrel',environmentPresetId:'cli_dev_local',resolvedProfileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),policy:{id:'kestrel',version:1},approvalPolicyPack:{id:'dev',version:1,digest:'b'.repeat(64)}}})); process.exit(0); }
 if (args[0] === 'workspace') process.exit(1);
-if (args[0] === 'runtime' && args[1] === 'replay') {
+if (args[0] === 'runtime' && args[1] === 'bundle') {
   const candidate={runId:'run-one',sessionId:'session-one',type:'managed_worktree.promotion_candidate',metadata:{worktreeRoot:${JSON.stringify(worktree)},sourceWorkspaceRoot:${JSON.stringify(workspace)},baseHead:${JSON.stringify(sourceRevision)},scope:{kind:'sessionId',value:'session-one'},changedFiles:['delivered/one.txt','delivered/two.txt'],candidateFingerprint:'candidate-one',promotionId:'promotion-one'}};
-  const eventTypes=args.flatMap((value,index)=>value==='--event-type'?[args[index+1]]:[]);
-  const events=eventTypes.length>0?[candidate]:[{runId:'run-one',sessionId:'session-one',type:'run.progress',metadata:{payload:'x'.repeat(17*1024*1024)}},candidate];
-  writeFileSync(1, JSON.stringify({events}));
+  const events=[{runId:'run-one',sessionId:'session-one',type:'run.progress',metadata:{payload:'x'.repeat(17*1024*1024)}},candidate];
+  writeFileSync(args[args.indexOf('--out')+1], JSON.stringify({version:'runtime_replay_bundle_v1',replay:{events}}));
+  process.stdout.write('runtime bundle exported');
 }
+if (args[0] === 'runtime' && args[1] === 'replay') process.exit(92);
 if (args[0] === 'job') {
   const input = JSON.parse(readFileSync(args[args.indexOf('--json-in') + 1], 'utf8'));
   const output = {job:{status:'COMPLETED',sessionId:input.turn.sessionId,threadId:'thread-one',runId:'run-one',replay:{runId:'run-one'},result:{assistantText:'done',output:{status:'COMPLETED',sessionId:input.turn.sessionId,runId:'run-one'}}}};
@@ -147,10 +148,6 @@ if (args[0] === 'job') {
 }
 `);
   try {
-    const oversizedReplay = spawnSync(kestrel, ["runtime", "replay", "--run-id", "run-one", "--json"], { encoding: "utf8", maxBuffer: 24 * 1024 * 1024 });
-    assert.equal(oversizedReplay.status, 0, oversizedReplay.stderr);
-    assert.equal(Buffer.byteLength(oversizedReplay.stdout) > 16 * 1024 * 1024, true);
-    assert.match(oversizedReplay.stdout, /managed_worktree\.promotion_candidate/u);
     const result = runtime(["run", "--workspace", workspace, "--task-file", task, "--validation-file", validation, "--state-dir", state, "--session", "session-one", "--kestrel-bin", kestrel, "--json"]);
     const actualRun = join(state, "runs", readdirSync(join(state, "runs"))[0]);
     assert.equal(result.status, 0, `${result.stderr}\n${readFileSync(join(actualRun, "manifest.json"), "utf8")}`); assert.equal(readFileSync(join(workspace, "delivered", "one.txt"), "utf8"), "one\n"); assert.equal(readFileSync(join(workspace, "delivered", "two.txt"), "utf8"), "two\n");

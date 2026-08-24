@@ -1,6 +1,6 @@
 {
   "name": "kestrel",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Run the complete Kestrel managed-work lifecycle from setup through safe local integration and cleanup.",
   "author": {
     "name": "Greg Asher",
