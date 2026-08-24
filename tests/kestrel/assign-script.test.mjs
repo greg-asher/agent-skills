@@ -71,6 +71,16 @@ test("kestrel-assign rejects an older preflight contract before job.run", () => 
   } finally { rmSync(fixture.root, { recursive:true, force:true }); }
 });
 
+test("kestrel-assign rejects a malformed preflight identity before job.run", () => {
+  const fixture = createFixture("COMPLETED");
+  try {
+    const result = spawnSync(process.execPath, [WRAPPER, "--workspace", fixture.workspace, "--task-file", fixture.taskFile, "--state-dir", fixture.stateDir, "--kestrel-bin", fixture.fakeKestrel, "--json"], { cwd:resolve("."), encoding:"utf8", env:{...process.env,FAKE_KESTREL_PREFLIGHT:"malformed"} });
+    assert.equal(result.status, 4, result.stderr);
+    assert.equal(JSON.parse(result.stdout).status, "COMPATIBILITY_ERROR");
+    assert.deepEqual(readdirSync(join(fixture.stateDir, "runs")), []);
+  } finally { rmSync(fixture.root, { recursive:true, force:true }); }
+});
+
 test("kestrel-assign returns a distinct status when Kestrel is waiting", () => {
   const fixture = createFixture("WAITING");
   try {
@@ -147,7 +157,9 @@ const input = JSON.parse(readFileSync(inputPath, "utf8"));
 if (args[0] === "job" && args[1] === "preflight") {
   const missing = process.env.FAKE_KESTREL_PREFLIGHT === "missing-tool";
   const legacy = process.env.FAKE_KESTREL_PREFLIGHT === "legacy";
-  writeFileSync(outputPath, JSON.stringify({version:legacy?"job_preflight_v0":"job_preflight_v1",capability:"local-core.execution-profile-resolution.v2",status:missing?"setup_required":"ready",requestedPresetId:"cli_dev_local",resolvedPresetId:"cli_dev_local",profileId:"kestrel:cli_dev_local:fixture",profileFingerprint:"a".repeat(64),approvalPolicyPackId:"dev",policyRevision:"cli_dev_local:v1",effectiveTools:missing?[]:["exec_command"],requiredTools:["exec_command"],missingTools:missing?["exec_command"]:[],executionProfileBinding:{version:"job_execution_profile_binding_v1",authoringProfileId:"kestrel",environmentPresetId:"cli_dev_local",resolvedProfileId:"kestrel:cli_dev_local:fixture",profileFingerprint:"a".repeat(64),policy:{id:"kestrel",version:1},approvalPolicyPack:{id:"dev",version:1,digest:"b".repeat(64)}},...(missing?{code:"SETUP_REQUIRED",remediation:"Enable exec_command"}:{})}));
+  const malformed = process.env.FAKE_KESTREL_PREFLIGHT === "malformed";
+  const preflight = {version:legacy?"job_preflight_v0":"job_preflight_v1",capability:"local-core.execution-profile-resolution.v2",status:missing?"setup_required":"ready",requestedPresetId:"cli_dev_local",resolvedPresetId:"cli_dev_local",profileId:"kestrel:cli_dev_local:fixture",profileFingerprint:"a".repeat(64),approvalPolicyPackId:"dev",policyRevision:"cli_dev_local:v1",effectiveTools:missing?[]:["exec_command"],requiredTools:["exec_command"],missingTools:missing?["exec_command"]:[],executionProfileBinding:{version:"job_execution_profile_binding_v1",authoringProfileId:"kestrel",environmentPresetId:"cli_dev_local",resolvedProfileId:"kestrel:cli_dev_local:fixture",profileFingerprint:"a".repeat(64),policy:{id:"kestrel",version:1},approvalPolicyPack:{id:"dev",version:1,digest:"b".repeat(64)}},...(missing?{code:"SETUP_REQUIRED",remediation:"Enable exec_command"}:{}),...(malformed?{unexpected:true}: {})};
+  writeFileSync(outputPath, JSON.stringify(preflight));
   process.exit(missing ? 1 : 0);
 }
 const status = process.env.FAKE_KESTREL_STATUS ?? "COMPLETED";
