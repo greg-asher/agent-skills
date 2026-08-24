@@ -64,30 +64,31 @@ function setup(options) {
   return report(options, result, health.status === 0 ? 0 : 4);
 }
 
-function assign(options) {
+function assign(options, context = {}) {
   const workspaceRoot = gitRoot(required(options.workspace, "--workspace"));
   const taskFile = options.taskFile ? resolve(options.taskFile) : undefined;
   const task = options.task ?? (taskFile ? readTask(taskFile) : undefined);
   if (!task) throw new Error("--task or --task-file is required");
-  const validationCommands = readValidationCommands(options.validationFile);
+  const validationCommands = context.validationCommands ?? readValidationCommands(options.validationFile);
   const root = stateRoot(options);
-  const setup = preflight(options, workspaceRoot, root);
+  const setup = context.setup ?? preflight(options, workspaceRoot, root);
   if (!setup.ok) return setupFailure(options, root, workspaceRoot, task, setup);
-  const readiness = jobReadiness(options, workspaceRoot, task, validationCommands);
+  const readiness = context.readiness ?? jobReadiness(options, workspaceRoot, task, validationCommands);
   if (!readiness.ok) return readinessFailure(options, workspaceRoot, readiness);
   mkdirSync(join(root, "runs"), { recursive: true });
-  const taskHash = createHash("sha256").update(`${workspaceRoot}\0${task}`).digest("hex");
-  const reusable = matchingRun(root, taskHash);
+  const taskHash = assignmentHash(workspaceRoot, task, validationCommands, readiness.output);
+  const reusable = matchingRun(root, taskHash, validationCommands, readiness.output);
   if (reusable && !options.newRun) { const manifest = resolveCompletedResultHandle(reusable.dir, reusable.manifest, options.kestrelBin ?? "kestrel", options); printSummary(reusable.dir, manifest, readJson(join(reusable.dir, "output.json"))); return { code: lifecycleCode(manifest.lifecycle), manifest }; }
   const sourceRevision = git(workspaceRoot, ["rev-parse", "HEAD"]).stdout.trim();
   const sessionId = options.session ?? sessionName(task); validateId(sessionId);
   const dir = join(root, "runs", sessionId); if (existsSync(dir)) throw new Error(`Assignment already exists: ${dir}`); mkdirSync(dir);
   const inputPath = join(dir, "input.json"), outputPath = join(dir, "output.json");
-  const input = jobInput(options, workspaceRoot, task, sessionId, readiness.output.profileId, validationCommands); writeJson(inputPath, input);
+  const authoringProfileId = options.profile ?? "kestrel";
+  const input = jobInput(options, workspaceRoot, task, sessionId, authoringProfileId, validationCommands, readiness.output.executionProfileBinding); writeJson(inputPath, input);
   writeJson(join(dir, "task.json"), { content: task, sha256: createHash("sha256").update(task).digest("hex"), source: taskFile ?? "--task", persistedAt: new Date().toISOString() });
   if (taskFile && isTemporaryPath(taskFile)) writeJson(join(dir, "temporary-input.json"), { path: taskFile, sha256: createHash("sha256").update(task).digest("hex"), cleanupPending: true });
   const kestrelBin = options.kestrelBin ?? "kestrel";
-  let manifest = { version: "kestrel_plugin_run_v3", sessionId, taskHash, workspaceRoot, workspaceId: input.turn.workspace.workspaceId, sourceRevision, profileId: input.profileId, environmentPresetId: input.environmentPresetId, approvalPolicyPackId: input.approvalPolicyPackId, cliVersion: probeVersion(kestrelBin, workspaceRoot), lifecycle: "RUNNING", phase: "job.run", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), inputPath, outputPath, stateDir: root, runtimeConfig: runtimeConfig(options), worktreePath: null, managedWorktreeCreated: null, resultRevision: null, validationCommands, validation: [], integration: { status: "NOT_STARTED" }, cleanup: { status: "NOT_STARTED", safe: false }, recoveryAttempts: 0, setupPreflight: setup.checks, jobPreflight: readiness.output };
+  let manifest = { version: "kestrel_plugin_run_v3", sessionId, taskHash, workspaceRoot, workspaceId: input.turn.workspace.workspaceId, sourceRevision, profileId: input.profileId, resolvedProfileId: readiness.output.profileId, profileFingerprint: readiness.output.profileFingerprint, policyRevision: readiness.output.policyRevision, negotiatedCapability: readiness.output.capability, environmentPresetId: input.environmentPresetId, approvalPolicyPackId: input.approvalPolicyPackId, cliVersion: probeVersion(kestrelBin, workspaceRoot), lifecycle: "RUNNING", phase: "job.run", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), inputPath, outputPath, stateDir: root, runtimeConfig: runtimeConfig(options), worktreePath: null, managedWorktreeCreated: null, resultRevision: null, validationCommands, validation: [], integration: { status: "NOT_STARTED" }, cleanup: { status: "NOT_STARTED", safe: false }, recoveryAttempts: 0, setupPreflight: setup.checks, jobPreflight: readiness.output };
   writeJson(join(dir, "manifest.json"), manifest);
   const child = spawn(kestrelBin, ["job", "run", ...runtimeArgs(options), "--json-in", inputPath, "--json-out", outputPath], workspaceRoot, true, options);
   const output = readJson(outputPath);
@@ -162,20 +163,24 @@ function cleanup(options) {
 }
 
 function runLifecycle(options) {
-  const nodeMajor = Number(process.versions.node.split(".")[0]), platform = `${process.platform}-${process.arch}`, preflight = spawn(options.kestrelBin ?? "kestrel", ["--help", ...runtimeArgs(options)], options.workspace, false, options);
-  if ((nodeMajor !== 22 && !options.allowTestNode) || (!["darwin-arm64", "linux-x64"].includes(platform) && !options.allowTestPlatform) || preflight.status !== 0 || REQUIRED_HELP.some((word) => !preflight.stdout.includes(word))) return report(options, { status: "SETUP_REQUIRED", reason: "Kestrel installation or host compatibility", next: "Run kestrel-plugin setup with explicit installation approval, then rerun this command." }, 3);
+  const nodeMajor = Number(process.versions.node.split(".")[0]), platform = `${process.platform}-${process.arch}`, helpProbe = spawn(options.kestrelBin ?? "kestrel", ["--help", ...runtimeArgs(options)], options.workspace, false, options);
+  if ((nodeMajor !== 22 && !options.allowTestNode) || (!["darwin-arm64", "linux-x64"].includes(platform) && !options.allowTestPlatform) || helpProbe.status !== 0 || REQUIRED_HELP.some((word) => !helpProbe.stdout.includes(word))) return report(options, { status: "SETUP_REQUIRED", reason: "Kestrel installation or host compatibility", next: "Run kestrel-plugin setup with explicit installation approval, then rerun this command." }, 3);
   const workspaceRoot = gitRoot(required(options.workspace, "--workspace"));
   const task = options.task ?? (options.taskFile ? readTask(resolve(options.taskFile)) : undefined);
   if (!task) throw new Error("--task or --task-file is required");
-  const readiness = jobReadiness(options, workspaceRoot, task, readValidationCommands(options.validationFile));
+  const setup = preflight(options, workspaceRoot, stateRoot(options));
+  if (!setup.ok) return setupFailure(options, stateRoot(options), workspaceRoot, task, setup).code;
+  const validationCommands = readValidationCommands(options.validationFile);
+  const readiness = jobReadiness(options, workspaceRoot, task, validationCommands);
   if (!readiness.ok) return readinessFailure(options, workspaceRoot, readiness).code;
-  let assigned = assign(options);
+  let assigned = assign(options, { task, workspaceRoot, setup, validationCommands, readiness });
   if (assigned.code !== 0 && assigned.manifest.lifecycle === "INTERRUPTED" && assigned.manifest.runId) {
     const recovered = recover({ ...options, session: assigned.manifest.sessionId, replay: true });
     if (recovered !== 0) return recovered;
     assigned = { code: 0, manifest: requireRun({ ...options, session: assigned.manifest.sessionId }).manifest };
   }
   if (assigned.code !== 0) return assigned.code;
+  if (assigned.manifest.lifecycle !== "COMPLETED_ISOLATED") return assigned.code || 1;
   const validationCode = validateRunResult({ ...options, session: assigned.manifest.sessionId }); if (validationCode !== 0) return validationCode;
   const integrated = integrate({ ...options, session: assigned.manifest.sessionId }); if (integrated.code !== 0) return integrated.code;
   return cleanup({ ...options, session: assigned.manifest.sessionId });
@@ -186,7 +191,8 @@ function validateRunResult(options) {
   if (!options.validationFile) return report(options, { status: "VALIDATION_EVIDENCE_REUSED", validation: found.manifest.validation }, 0);
   const commands = found.manifest.validationCommands;
   if (!Array.isArray(commands)) throw new Error("Assignment does not contain frozen validation argument arrays");
-  const validationRoot = found.manifest.lifecycle === "COMPLETED_ISOLATED" ? found.manifest.worktreePath : found.manifest.workspaceRoot;
+  if (found.manifest.lifecycle !== "COMPLETED_ISOLATED") throw new Error(`Outer validation requires a completed isolated result: ${found.manifest.lifecycle}`);
+  const validationRoot = found.manifest.worktreePath;
   if (!validationRoot || !existsSync(validationRoot)) throw new Error(`Completed run cannot be validated because its result location is unavailable; retain ${found.dir}`);
   const results = [];
   for (const args of commands) {
@@ -203,7 +209,7 @@ function parseArguments(args) {
   for (let i=0;i<args.length;i+=1) { const token=args[i]; if (bool.has(token)) { values[bool.get(token)]=true; continue; } const key=strings.get(token); if (!key) throw new Error(`Unknown argument: ${token}`); const value=args[++i]; if (!value || value.startsWith("--")) throw new Error(`${token} requires a value`); values[key]=value; }
   if (values.approvalPack && !["dev","ci_bot","production"].includes(values.approvalPack)) throw new Error("--approval-pack must be dev, ci_bot, or production"); return values;
 }
-function jobInput(options, root, task, sessionId, profileId, validationCommands) { return { version:"job_input_v2", environmentPresetId:JOB_PRESET, profileId, approvalPolicyPackId:JOB_APPROVAL_PACK, runtimeConfig:runtimeConfig(options), turn:{ sessionId,eventType:"job.run",message:task,noninteractive:true,stepAgent:"agent.loop",interactionMode:"build",actSubmode:"full_auto",systemInstructions:["Complete the assigned repository task end to end. Implement the change, validate it, and report the result.","Use host exec_command for npm, build, and test work in the managed Kestrel worktree. Do not use code.execute for repository implementation.",`Independent validation will rerun these exact argument arrays unchanged: ${JSON.stringify(validationCommands)}.`,"Work only in the managed Kestrel worktree. Do not merge, push, publish, or deploy unless the assignment explicitly requires it.","If missing authority or information prevents responsible completion, stop with one specific blocker instead of guessing."],workspace:{workspaceId:workspaceId(root),workspaceRoot:root,launchCwd:root,appRoot:".",commands:{},label:basename(root),managedWorktreeRequired:true,managedWorktreeIsolation:"session",sourceWorkspaceRoot:root,managedWorktreeBaseRef:"HEAD"}}}; }
+function jobInput(options, root, task, sessionId, profileId, validationCommands, executionProfileBinding) { return { version:"job_input_v2", environmentPresetId:JOB_PRESET, profileId, approvalPolicyPackId:JOB_APPROVAL_PACK, ...(executionProfileBinding !== undefined ? { executionProfileBinding } : {}), turn:{ sessionId,eventType:"job.run",message:task,noninteractive:true,stepAgent:"agent.loop",interactionMode:"build",actSubmode:"full_auto",systemInstructions:["Complete the assigned repository task end to end. Implement the change, validate it, and report the result.","Use host exec_command for npm, build, and test work in the managed Kestrel worktree. Do not use code.execute for repository implementation.",`Independent validation will rerun these exact argument arrays unchanged: ${JSON.stringify(validationCommands)}.`,"Work only in the managed Kestrel worktree. Do not merge, push, publish, or deploy unless the assignment explicitly requires it.","If missing authority or information prevents responsible completion, stop with one specific blocker instead of guessing."],workspace:{workspaceId:workspaceId(root),workspaceRoot:root,launchCwd:root,appRoot:".",commands:{},label:basename(root),managedWorktreeRequired:true,managedWorktreeIsolation:"session",sourceWorkspaceRoot:root,managedWorktreeBaseRef:"HEAD"}}}; }
 
 function readValidationCommands(path) {
   if (!path) return [];
@@ -220,8 +226,9 @@ function jobReadiness(options, workspaceRoot, task, validationCommands) {
     const result = spawn(options.kestrelBin ?? "kestrel", ["job", "preflight", ...runtimeArgs(options), "--json-in", inputPath, "--json-out", outputPath], workspaceRoot, false, options);
     const output = readJson(outputPath);
     if (!output) return { ok:false, code:"COMPATIBILITY_ERROR", message:(result.stderr || result.stdout || "Installed Kestrel does not support job_input_v2 preflight").trim() };
+    if (output.version !== "job_preflight_v1") return { ok:false, code:"COMPATIBILITY_ERROR", message:"Installed Kestrel returned an unsupported job preflight contract; update Kestrel and Local Core.", output };
+    if (!validateJobPreflightOutput(output, options.profile ?? "kestrel")) return { ok:false, code:"COMPATIBILITY_ERROR", message:`Kestrel must return the V2 ${JOB_PRESET} execution-profile binding with ${JOB_REQUIRED_TOOL} and ${JOB_APPROVAL_PACK} policy`, output };
     if (result.status !== 0 || output.status !== "ready") return { ok:false, code:output.code === "COMPATIBILITY_ERROR" ? "COMPATIBILITY_ERROR" : "SETUP_REQUIRED", message:output.remediation ?? result.stderr.trim() ?? "Kestrel job preflight failed", output };
-    if (output.requestedPresetId !== JOB_PRESET || output.resolvedPresetId !== JOB_PRESET || output.approvalPolicyPackId !== JOB_APPROVAL_PACK || !Array.isArray(output.effectiveTools) || !output.effectiveTools.includes(JOB_REQUIRED_TOOL) || typeof output.profileId !== "string" || !output.profileId) return { ok:false, code:"SETUP_REQUIRED", message:`Kestrel must resolve ${JOB_PRESET} with ${JOB_REQUIRED_TOOL} and ${JOB_APPROVAL_PACK} policy`, output };
     return { ok:true, output };
   } finally { rmSync(dir, { recursive:true, force:true }); }
 }
@@ -291,10 +298,11 @@ function cleanupTemporaryInput(dir) { const marker = readJson(join(dir, "tempora
 function stateRoot(options={}) { if(options.stateDir)return resolve(options.stateDir); if(process.env.CLAUDE_PLUGIN_DATA)return join(process.env.CLAUDE_PLUGIN_DATA,"kestrel"); return join(process.env.CODEX_HOME??join(homedir(),".codex"),"plugin-data","kestrel"); }
 function findRun(root,options) { const runs=join(root,"runs"); if(!existsSync(runs))return undefined; const all=readdirSync(runs).map(name=>({dir:join(runs,name),manifest:readJson(join(runs,name,"manifest.json"))})).filter(x=>x.manifest); return options.session?all.find(x=>x.manifest.sessionId===options.session):options.runId?all.find(x=>x.manifest.runId===options.runId):all.sort((a,b)=>b.manifest.updatedAt.localeCompare(a.manifest.updatedAt))[0]; }
 function requireRun(options){const found=findRun(stateRoot(options),options);if(!found)throw new Error("No matching Kestrel run found");return found;}
-function matchingRun(root,hash){const runs=join(root,"runs");if(!existsSync(runs))return undefined;return readdirSync(runs).map(name=>({dir:join(runs,name),manifest:readJson(join(runs,name,"manifest.json"))})).filter(x=>x.manifest?.taskHash===hash&&!['FAILED','CLEANED'].includes(x.manifest.lifecycle)).sort((a,b)=>b.manifest.updatedAt.localeCompare(a.manifest.updatedAt))[0];}
+function matchingRun(root,hash,validationCommands,preflight){const runs=join(root,"runs");if(!existsSync(runs))return undefined;return readdirSync(runs).map(name=>({dir:join(runs,name),manifest:readJson(join(runs,name,"manifest.json"))})).filter(x=>x.manifest?.taskHash===hash&&!['FAILED','CLEANED'].includes(x.manifest.lifecycle)&&sameValidationCommands(x.manifest.validationCommands,validationCommands)&&x.manifest.environmentPresetId===JOB_PRESET&&x.manifest.approvalPolicyPackId===JOB_APPROVAL_PACK&&x.manifest.resolvedProfileId===preflight?.profileId&&x.manifest.profileFingerprint===preflight?.profileFingerprint).sort((a,b)=>b.manifest.updatedAt.localeCompare(a.manifest.updatedAt))[0];}
 function update(dir,manifest,patch){const value={...manifest,...patch,updatedAt:new Date().toISOString()};writeJson(join(dir,"manifest.json"),value);return value;}
 function readJson(path){if(!existsSync(path))return undefined;try{return JSON.parse(readFileSync(path,"utf8"));}catch{return undefined;}}
 function writeJson(path,value){writeFileSync(path,`${JSON.stringify(value,null,2)}\n`,"utf8");}
+function assignmentHash(workspaceRoot,task,validationCommands,preflight){return createHash("sha256").update(JSON.stringify({workspaceRoot,task,validationCommands,environmentPresetId:JOB_PRESET,approvalPolicyPackId:JOB_APPROVAL_PACK,profileId:preflight?.profileId,profileFingerprint:preflight?.profileFingerprint,policyRevision:preflight?.policyRevision,capability:preflight?.capability})).digest("hex");}
 function readTask(path){const value=readFileSync(path,"utf8").trim();if(!value)throw new Error(`Task file is empty: ${path}`);return value;}
 function required(value,flag){if(!value)throw new Error(`${flag} is required`);return value;}
 function gitRoot(path){const candidate=realpathSync(resolve(path));const result=git(candidate,["rev-parse","--show-toplevel"]);if(result.status!==0)throw new Error(`${candidate} is not inside a Git repository`);return realpathSync(result.stdout.trim());}
@@ -305,12 +313,29 @@ function resolveStableVersion(npmBin){const result=spawn(npmBin,["view",PACKAGE,
 function changed(cwd){return git(cwd,["status","--porcelain","--untracked-files=all"]).stdout.split("\n").filter(Boolean).map(line=>line.slice(3));}
 function changedSince(cwd,base){return[...new Set([...git(cwd,["diff","--name-only",base]).stdout.split("\n").filter(Boolean),...changed(cwd)])];}
 function samePaths(first,second){const a=[...new Set(first)].sort(),b=[...new Set(second)].sort();return a.length===b.length&&a.every((path,index)=>path===b[index]);}
+function sameValidationCommands(first,second){return Array.isArray(first)&&Array.isArray(second)&&first.length===second.length&&first.every((args,index)=>Array.isArray(args)&&Array.isArray(second[index])&&args.length===second[index].length&&args.every((value,argIndex)=>value===second[index][argIndex]));}
+function isSha256(value){return typeof value==="string"&&/^[a-f0-9]{64}$/u.test(value);}
+function validateJobPreflightOutput(output,authoringProfileId){
+  if(!output||typeof output!=="object"||Array.isArray(output))return false;
+  if(!hasOnlyKeys(output,["version","capability","status","requestedPresetId","resolvedPresetId","profileId","profileFingerprint","policyRevision","approvalPolicyPackId","effectiveTools","requiredTools","missingTools","executionProfileBinding","code","remediation"]))return false;
+  if(output.version!=="job_preflight_v1"||output.capability!=="local-core.execution-profile-resolution.v2"||!["ready","setup_required"].includes(output.status)||output.requestedPresetId!==JOB_PRESET||output.resolvedPresetId!==JOB_PRESET||typeof output.profileId!=="string"||output.profileId.length===0||!isSha256(output.profileFingerprint)||typeof output.policyRevision!=="string"||output.policyRevision.length===0||output.approvalPolicyPackId!==JOB_APPROVAL_PACK)return false;
+  if(!stringArray(output.effectiveTools)||!stringArray(output.requiredTools)||!stringArray(output.missingTools)||!output.requiredTools.includes(JOB_REQUIRED_TOOL))return false;
+  if(output.status==="ready"&&output.missingTools.length!==0)return false;
+  if(output.status==="setup_required"&&output.missingTools.length===0)return false;
+  if(output.code!==undefined&&typeof output.code!=="string")return false;
+  if(output.remediation!==undefined&&typeof output.remediation!=="string")return false;
+  const binding=output.executionProfileBinding;
+  return validateExecutionProfileBinding(binding,output)&&binding.authoringProfileId===authoringProfileId;
+}
+function hasOnlyKeys(value,keys){const allowed=new Set(keys);return Object.keys(value).every((key)=>allowed.has(key));}
+function stringArray(value){return Array.isArray(value)&&value.every((item)=>typeof item==="string"&&item.length>0);}
+function validateExecutionProfileBinding(binding,output){if(typeof binding!=="object"||binding===null||Array.isArray(binding)||!hasOnlyKeys(binding,["version","authoringProfileId","environmentPresetId","resolvedProfileId","profileFingerprint","policy","approvalPolicyPack"]))return false;const policy=binding.policy,pack=binding.approvalPolicyPack;return binding.version==="job_execution_profile_binding_v1"&&typeof binding.authoringProfileId==="string"&&binding.authoringProfileId.length>0&&binding.environmentPresetId===JOB_PRESET&&binding.resolvedProfileId===output.profileId&&binding.profileFingerprint===output.profileFingerprint&&isSha256(binding.profileFingerprint)&&policy&&typeof policy.id==="string"&&policy.id.length>0&&Number.isSafeInteger(policy.version)&&policy.version>0&&hasOnlyKeys(policy,["id","version"])&&pack?.id===JOB_APPROVAL_PACK&&Number.isSafeInteger(pack.version)&&pack.version>0&&hasOnlyKeys(pack,["id","version","digest"])&&isSha256(pack.digest);}
 function canonicalExistingPath(path){try{return realpathSync(resolve(path));}catch{return undefined;}}
 function workspaceId(root){return`${slug(basename(root))||"workspace"}-${createHash("sha256").update(root).digest("hex").slice(0,8)}`;}
 function sessionName(task){const label=slug(task.split(/\s+/u).slice(0,6).join(" ")).slice(0,42)||"assignment",stamp=new Date().toISOString().replace(/[-:TZ.]/gu,"").slice(0,14);return`assign-${label}-${stamp}-${randomBytes(3).toString("hex")}`;}
 function slug(value){return value.toLowerCase().replace(/[^a-z0-9]+/gu,"-").replace(/^-+|-+$/gu,"");}
 function validateId(value){if(!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$/u.test(value))throw new Error("session must use 1-120 letters, digits, dots, underscores, or hyphens");}
-function lifecycleCode(value){return value==="WAITING"?2:value==="SETUP_FAILED"?3:["COMPLETED_ISOLATED","INTEGRATED","CLEANED","RUNNING"].includes(value)?0:1;}
+function lifecycleCode(value){return value==="WAITING"?2:value==="SETUP_FAILED"?3:["COMPLETED_ISOLATED","INTEGRATED","CLEANED"].includes(value)?0:1;}
 function printSummary(dir,manifest,output){process.stdout.write(`assignment_dir=${dir}\ninput=${manifest.inputPath}\noutput=${manifest.outputPath}\nstatus=${manifest.lifecycle}\nsession=${manifest.sessionId}\n`);if(manifest.threadId)process.stdout.write(`thread=${manifest.threadId}\n`);if(manifest.runId)process.stdout.write(`run=${manifest.runId}\n`);if(output?.job?.replay?.commands?.replay)process.stdout.write(`replay=${output.job.replay.commands.replay}\n`);if(output?.job?.result?.assistantText)process.stdout.write(`assistant_text:\n${output.job.result.assistantText.trim()}\n`);}
 function report(options,value,code){if(options.json)process.stdout.write(`${JSON.stringify(value,null,2)}\n`);else for(const[key,item]of Object.entries(value))process.stdout.write(`${key}=${typeof item==="object"?JSON.stringify(item):item}\n`);return code;}
 function usage(){return`Usage: kestrel-plugin <setup|run|assign|status|recover|doctor|integrate|cleanup> [options]\n\nCommon: --workspace <path> --state-dir <path> --session <id> --run <id> --kestrel-bin <path> --json\nAssign/run: --task <text> | --task-file <path> [--validation-file <json>] [--profile <id>] [--new-run]\nSetup: --approve-install [--npm-bin <path>] [--install-version <version>] [--skip-configure]\nDoctor: --workspace <root>\nRecover: --replay\nCleanup: --discard-result | --delete-evidence --confirm <session-id>\n\nAssignments require job_input_v2, cli_dev_local, dev policy, and host exec_command. --state-dir is authoritative. Derived Local Core paths are exported as KESTREL_*_DIR variables and passed to the Kestrel CLI.\n`;}
