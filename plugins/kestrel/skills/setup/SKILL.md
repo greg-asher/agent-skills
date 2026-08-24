@@ -10,6 +10,6 @@ Read [the shared lifecycle contract](../../references/lifecycle.md) and [the wri
 
 Run `kestrel-plugin setup` without `--approve-install` first. Report detected Node, platform, executable, required package, resolved stable version, exact install command, and destination.
 
-Require Node.js 22 on macOS arm64 or Linux x64. Do not install Node or change the user's version manager. Do not overwrite an executable that cannot be identified as Kestrel.
+Require Node.js 22 on macOS arm64 or Linux x64 and Kestrel 0.8.8 or newer. Do not install Node or change the user's version manager. Treat explicit `--kestrel-bin` as authoritative; report `COMPATIBILITY_ERROR` instead of installing a different executable.
 
-If installation or upgrade is required, obtain explicit approval, rerun with `--approve-install`, then let setup configure the `kestrel` profile with the `dev` approval pack unless the user supplied overrides. Verify required commands and Local Core health. Report the exact installed version and any remaining blocker.
+If installation or upgrade is required for a missing, persisted, or PATH selection, obtain explicit approval and rerun with `--approve-install`. Setup resolves the npm-installed binary from `npm prefix -g`, persists its absolute realpath, and configures the `kestrel` profile with the `dev` approval pack unless the user supplied overrides. Verify the real V2 job preflight and Local Core health under the selected `KESTREL_HOME`. Report the exact installed version, realpath, and any remaining blocker.

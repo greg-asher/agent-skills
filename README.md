@@ -90,7 +90,7 @@ The cross-platform `kestrel` plugin contains seven explicitly invoked skills:
 
 `run` is the convenient autonomous entry point. It accepts an implementation issue or direct task, reuses matching durable work, submits Kestrel's supported job contract, waits for terminal evidence, integrates the exact result locally, and removes only a proven-clean managed worktree. It never pushes, opens a pull request, merges remotely, or deploys without a separate explicit request.
 
-The plugin supports macOS arm64 and Linux x64 with Node.js 22. Setup installs the public stable `@kestrel-agents/kestrel` npm package only after showing the exact version and receiving approval. It never installs Node or overwrites an unrelated executable. Assignment and run use `job_input_v2`, require the `cli_dev_local` preset with host `exec_command`, and run Kestrel's read-only job preflight before any assignment or managed-worktree mutation.
+Plugin 0.3.1 supports macOS arm64 and Linux x64 with Node.js 22 and requires Kestrel 0.8.8 or newer. Setup installs the public stable `@kestrel-agents/kestrel` npm package only after showing the exact version and receiving approval, then persists the verified executable realpath so a shadowing PATH entry cannot replace it. Plugin `--state-dir` remains the evidence root and is passed to Kestrel only as `KESTREL_HOME`; no Kestrel `--state-dir` flag or plugin-invented derived state variables are used. Assignment and run use `job_input_v2`, require the `cli_dev_local` preset with host `exec_command`, and run Kestrel's real job preflight before any assignment or managed-worktree mutation.
 
 ## Analysis plugin
 

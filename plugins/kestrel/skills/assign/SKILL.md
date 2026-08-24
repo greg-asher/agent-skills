@@ -50,7 +50,7 @@ Run the plugin executable:
 
 Use `--profile <id>` only when the user supplies an override. The wrapper always requires the resolved `cli_dev_local` preset and `dev` approval pack for managed repository work.
 
-Before it creates an assignment, the wrapper runs the read-only Kestrel job preflight. A missing `exec_command`, wrong preset, or incompatible Kestrel returns `SETUP_REQUIRED` or `COMPATIBILITY_ERROR` without creating a managed worktree. The wrapper submits `job_input_v2` with:
+Before it creates an assignment, the wrapper requires Kestrel 0.8.8 or newer and runs the real V2 Kestrel job preflight. A missing `exec_command`, wrong preset, or incompatible Kestrel returns `SETUP_REQUIRED` or `COMPATIBILITY_ERROR` without creating an assignment or managed worktree. The wrapper submits `job_input_v2` with:
 
 - build interaction mode
 - full-auto execution

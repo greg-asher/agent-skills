@@ -93,6 +93,18 @@ test("kestrel-assign returns a distinct status when Kestrel is waiting", () => {
   }
 });
 
+test("kestrel-assign preserves a structured run-time binding rejection", () => {
+  const fixture = createFixture("COMPLETED");
+  try {
+    const result = spawnSync(process.execPath, [WRAPPER, "--workspace", fixture.workspace, "--task-file", fixture.taskFile, "--state-dir", fixture.stateDir, "--kestrel-bin", fixture.fakeKestrel, "--json"], { cwd:resolve("."), encoding:"utf8", env:{...process.env,FAKE_KESTREL_REJECTION:"1"} });
+    assert.equal(result.status, 4, result.stderr);
+    const manifest=JSON.parse(readFileSync(join(onlyAssignment(fixture.stateDir),"manifest.json"),"utf8"));
+    assert.equal(manifest.failureClass,"COMPATIBILITY_ERROR");
+    assert.equal(manifest.compatibilityRejection.version,"job_run_rejection_v1");
+    assert.equal(manifest.managedWorktreeCreated,false);
+  } finally { rmSync(fixture.root,{recursive:true,force:true}); }
+});
+
 function createFixture(status) {
   const root = mkdtempSync(join(tmpdir(), "kestrel-assign-test-"));
   const workspace = join(root, "workspace");
@@ -151,6 +163,9 @@ function fakeKestrelSource() {
   return `#!/usr/bin/env node
 import { readFileSync, writeFileSync } from "node:fs";
 const args = process.argv.slice(2);
+if (args.includes("--help")) { process.stdout.write("status workspace job setup runtime"); process.exit(0); }
+if (args.includes("--version")) { process.stdout.write("kestrel 1.2.3"); process.exit(0); }
+if (args[0] === "status") { process.stdout.write("Kestrel Local Core: healthy"); process.exit(0); }
 const inputPath = args[args.indexOf("--json-in") + 1];
 const outputPath = args[args.indexOf("--json-out") + 1];
 const input = JSON.parse(readFileSync(inputPath, "utf8"));
@@ -158,11 +173,15 @@ if (args[0] === "job" && args[1] === "preflight") {
   const missing = process.env.FAKE_KESTREL_PREFLIGHT === "missing-tool";
   const legacy = process.env.FAKE_KESTREL_PREFLIGHT === "legacy";
   const malformed = process.env.FAKE_KESTREL_PREFLIGHT === "malformed";
-  const preflight = {version:legacy?"job_preflight_v0":"job_preflight_v1",capability:"local-core.execution-profile-resolution.v2",status:missing?"setup_required":"ready",requestedPresetId:"cli_dev_local",resolvedPresetId:"cli_dev_local",profileId:"kestrel:cli_dev_local:fixture",profileFingerprint:"a".repeat(64),approvalPolicyPackId:"dev",policyRevision:"cli_dev_local:v1",effectiveTools:missing?[]:["exec_command"],requiredTools:["exec_command"],missingTools:missing?["exec_command"]:[],executionProfileBinding:{version:"job_execution_profile_binding_v1",authoringProfileId:"kestrel",environmentPresetId:"cli_dev_local",resolvedProfileId:"kestrel:cli_dev_local:fixture",profileFingerprint:"a".repeat(64),policy:{id:"kestrel",version:1},approvalPolicyPack:{id:"dev",version:1,digest:"b".repeat(64)}},...(missing?{code:"SETUP_REQUIRED",remediation:"Enable exec_command"}:{}),...(malformed?{unexpected:true}: {})};
+  const preflight = {version:legacy?"job_preflight_v0":"job_preflight_v1",capability:"local-core.execution-profile-resolution.v2",status:missing?"setup_required":"ready",requestedPresetId:"cli_dev_local",resolvedPresetId:"cli_dev_local",profileId:"kestrel:cli_dev_local:fixture",profileFingerprint:"a".repeat(64),approvalPolicyPackId:"dev",policyRevision:"kestrel:v1/cli_dev_local:v1",effectiveTools:missing?[]:["exec_command"],requiredTools:["exec_command"],missingTools:missing?["exec_command"]:[],executionProfileBinding:{version:"job_execution_profile_binding_v1",authoringProfileId:"kestrel",environmentPresetId:"cli_dev_local",resolvedProfileId:"kestrel:cli_dev_local:fixture",profileFingerprint:"a".repeat(64),policy:{id:"kestrel",version:1},approvalPolicyPack:{id:"dev",version:1,digest:"b".repeat(64)}},...(missing?{code:"SETUP_REQUIRED",remediation:"Enable exec_command"}:{}),...(malformed?{unexpected:true}: {})};
   writeFileSync(outputPath, JSON.stringify(preflight));
   process.exit(missing ? 1 : 0);
 }
 const status = process.env.FAKE_KESTREL_STATUS ?? "COMPLETED";
+if (process.env.FAKE_KESTREL_REJECTION === "1") {
+  writeFileSync(outputPath, JSON.stringify({version:"job_run_rejection_v1",code:"COMPATIBILITY_ERROR",message:"Binding drift",details:{mismatches:["profile fingerprint"]}}));
+  process.exit(1);
+}
 const output = {
   version: "job_output_v1",
   terminalEventType: "job.completed",
