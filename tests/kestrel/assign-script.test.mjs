@@ -30,6 +30,8 @@ test("kestrel-assign submits a full-auto managed-worktree job and preserves its 
     assert.equal(input.environmentPresetId, "cli_dev_local");
     assert.equal(input.profileId, "kestrel:cli_dev_local:fixture");
     assert.equal(input.approvalPolicyPackId, "dev");
+    assert.equal(input.executionProfileBinding.resolvedProfileId, input.profileId);
+    assert.equal(input.executionProfileBinding.profileFingerprint, "a".repeat(64));
     assert.equal(input.turn.message, "Implement sample behavior.\nValidate it.");
     assert.equal(input.turn.interactionMode, "build");
     assert.equal(input.turn.actSubmode, "full_auto");
@@ -54,6 +56,16 @@ test("kestrel-assign fails before assignment when job preflight is unsatisfied",
     const result = spawnSync(process.execPath, [WRAPPER, "--workspace", fixture.workspace, "--task-file", fixture.taskFile, "--state-dir", fixture.stateDir, "--kestrel-bin", fixture.fakeKestrel, "--json"], { cwd:resolve("."), encoding:"utf8", env:{...process.env,FAKE_KESTREL_PREFLIGHT:"missing-tool"} });
     assert.equal(result.status, 3, result.stderr);
     assert.equal(JSON.parse(result.stdout).status, "SETUP_REQUIRED");
+    assert.deepEqual(readdirSync(join(fixture.stateDir, "runs")), []);
+  } finally { rmSync(fixture.root, { recursive:true, force:true }); }
+});
+
+test("kestrel-assign rejects an older preflight contract before job.run", () => {
+  const fixture = createFixture("COMPLETED");
+  try {
+    const result = spawnSync(process.execPath, [WRAPPER, "--workspace", fixture.workspace, "--task-file", fixture.taskFile, "--state-dir", fixture.stateDir, "--kestrel-bin", fixture.fakeKestrel, "--json"], { cwd:resolve("."), encoding:"utf8", env:{...process.env,FAKE_KESTREL_PREFLIGHT:"legacy"} });
+    assert.equal(result.status, 4, result.stderr);
+    assert.equal(JSON.parse(result.stdout).status, "COMPATIBILITY_ERROR");
     assert.deepEqual(readdirSync(join(fixture.stateDir, "runs")), []);
   } finally { rmSync(fixture.root, { recursive:true, force:true }); }
 });
@@ -133,7 +145,8 @@ const outputPath = args[args.indexOf("--json-out") + 1];
 const input = JSON.parse(readFileSync(inputPath, "utf8"));
 if (args[0] === "job" && args[1] === "preflight") {
   const missing = process.env.FAKE_KESTREL_PREFLIGHT === "missing-tool";
-  writeFileSync(outputPath, JSON.stringify({version:"job_preflight_v1",status:missing?"setup_required":"ready",requestedPresetId:"cli_dev_local",resolvedPresetId:"cli_dev_local",profileId:"kestrel:cli_dev_local:fixture",profileFingerprint:"fixture",approvalPolicyPackId:"dev",policyRevision:"cli_dev_local:v1",effectiveTools:missing?[]:["exec_command"],requiredTools:["exec_command"],missingTools:missing?["exec_command"]:[],...(missing?{code:"SETUP_REQUIRED",remediation:"Enable exec_command"}:{})}));
+  const legacy = process.env.FAKE_KESTREL_PREFLIGHT === "legacy";
+  writeFileSync(outputPath, JSON.stringify({version:legacy?"job_preflight_v0":"job_preflight_v1",capability:"local-core.execution-profile-resolution.v2",status:missing?"setup_required":"ready",requestedPresetId:"cli_dev_local",resolvedPresetId:"cli_dev_local",profileId:"kestrel:cli_dev_local:fixture",profileFingerprint:"a".repeat(64),approvalPolicyPackId:"dev",policyRevision:"cli_dev_local:v1",effectiveTools:missing?[]:["exec_command"],requiredTools:["exec_command"],missingTools:missing?["exec_command"]:[],executionProfileBinding:{version:"job_execution_profile_binding_v1",authoringProfileId:"kestrel",environmentPresetId:"cli_dev_local",resolvedProfileId:"kestrel:cli_dev_local:fixture",profileFingerprint:"a".repeat(64),policy:{id:"kestrel",version:1},approvalPolicyPack:{id:"dev",version:1,digest:"b".repeat(64)}},...(missing?{code:"SETUP_REQUIRED",remediation:"Enable exec_command"}:{})}));
   process.exit(missing ? 1 : 0);
 }
 const status = process.env.FAKE_KESTREL_STATUS ?? "COMPLETED";

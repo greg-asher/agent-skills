@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { chmodSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -81,7 +81,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const args = process.argv.slice(2);
 if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
 if (args.includes('--version')) { process.stdout.write('kestrel 1.2.3'); process.exit(0); }
-if (args[0] === 'job' && args[1] === 'preflight') { const input=JSON.parse(readFileSync(args[args.indexOf('--json-in')+1],'utf8')); writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'fixture',approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[]})); process.exit(0); }
+if (args[0] === 'job' && args[1] === 'preflight') { const input=JSON.parse(readFileSync(args[args.indexOf('--json-in')+1],'utf8')); writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',capability:'local-core.execution-profile-resolution.v2',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[],executionProfileBinding:{version:'job_execution_profile_binding_v1',authoringProfileId:'kestrel',environmentPresetId:'cli_dev_local',resolvedProfileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),policy:{id:'kestrel',version:1},approvalPolicyPack:{id:'dev',version:1,digest:'b'.repeat(64)}}})); process.exit(0); }
 if (args[0] === 'workspace') process.exit(1);
 if (args[0] === 'runtime' && args[1] === 'replay') {
   process.stdout.write(JSON.stringify({events:[{runId:'run-one',sessionId:'session-one',type:'managed_worktree.promotion_candidate',metadata:{worktreeRoot:${JSON.stringify(worktree)},sourceWorkspaceRoot:${JSON.stringify(workspace)},baseHead:${JSON.stringify(sourceRevision)},scope:{kind:'sessionId',value:'session-one'},changedFiles:['delivered/one.txt','delivered/two.txt'],candidateFingerprint:'candidate-one',promotionId:'promotion-one'}}]}));
@@ -99,6 +99,11 @@ if (args[0] === 'job') {
     assert.equal(result.status, 0, `${result.stderr}\n${readFileSync(join(actualRun, "manifest.json"), "utf8")}`); assert.equal(readFileSync(join(workspace, "delivered", "one.txt"), "utf8"), "one\n"); assert.equal(readFileSync(join(workspace, "delivered", "two.txt"), "utf8"), "two\n");
     assert.equal(readFileSync(join(workspace, "unrelated", "keep.txt"), "utf8"), "keep\n");
     const saved = JSON.parse(readFileSync(join(actualRun, "manifest.json"), "utf8"));
+    const assignedInput = JSON.parse(readFileSync(join(actualRun, "input.json"), "utf8"));
+    const expectedCommands = JSON.parse(readFileSync(validation, "utf8"));
+    assert.deepEqual(saved.validationCommands, expectedCommands);
+    assert.deepEqual(saved.validation.map((entry) => entry.command), expectedCommands);
+    assert.equal(assignedInput.turn.systemInstructions.join("\n").includes(JSON.stringify(expectedCommands)), true);
     assert.equal(saved.lifecycle, "CLEANED"); assert.equal(saved.integration.validationStatus, "PASSED"); assert.equal(saved.resultHandle.source, "managed_worktree_replay"); assert.deepEqual(saved.resultHandle.changedFiles, ["delivered/one.txt", "delivered/two.txt"]);
     assert.equal(run("git", ["-C", workspace, "status", "--porcelain"]).stdout.includes("?? unrelated/"), true);
   } finally { rmSync(fixture, { recursive: true, force: true }); }
@@ -112,7 +117,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const args = process.argv.slice(2);
 if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
 if (args.includes('--version')) { process.stdout.write('kestrel 1.2.3'); process.exit(0); }
-if (args[0] === 'job' && args[1] === 'preflight') { writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'fixture',approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[]})); process.exit(0); }
+if (args[0] === 'job' && args[1] === 'preflight') { writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',capability:'local-core.execution-profile-resolution.v2',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[],executionProfileBinding:{version:'job_execution_profile_binding_v1',authoringProfileId:'kestrel',environmentPresetId:'cli_dev_local',resolvedProfileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),policy:{id:'kestrel',version:1},approvalPolicyPack:{id:'dev',version:1,digest:'b'.repeat(64)}}})); process.exit(0); }
 if (args[0] === 'runtime' && args[1] === 'replay') { process.stdout.write('{"events":[]}'); process.exit(0); }
 if (args[0] === 'job') {
   const input = JSON.parse(readFileSync(args[args.indexOf('--json-in') + 1], 'utf8'));
@@ -130,6 +135,81 @@ if (args[0] === 'job') {
   } finally { rmSync(fixture, { recursive: true, force: true }); }
 });
 
+test("run does not validate or mutate the source workspace for a nonterminal job", () => {
+  const fixture = temp("running"), workspace = repository(fixture), state = join(fixture, "state"), task = join(fixture, "task.md"), validation = join(fixture, "validation.json"), marker = join(workspace, "should-not-exist.txt");
+  writeFileSync(task, "Keep the result isolated.\n", "utf8");
+  writeJson(validation, [[process.execPath, "-e", `require('fs').writeFileSync(${JSON.stringify(marker)}, 'mutated\\n')`]]);
+  const kestrel = executable(fixture, "fake-running-kestrel", `
+import { readFileSync, writeFileSync } from 'node:fs';
+const args = process.argv.slice(2);
+if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
+if (args.includes('--version')) { process.stdout.write('kestrel 1.2.3'); process.exit(0); }
+if (args[0] === 'job' && args[1] === 'preflight') { writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',capability:'local-core.execution-profile-resolution.v2',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[],executionProfileBinding:{version:'job_execution_profile_binding_v1',authoringProfileId:'kestrel',environmentPresetId:'cli_dev_local',resolvedProfileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),policy:{id:'kestrel',version:1},approvalPolicyPack:{id:'dev',version:1,digest:'b'.repeat(64)}}})); process.exit(0); }
+if (args[0] === 'job') { const input=JSON.parse(readFileSync(args[args.indexOf('--json-in')+1],'utf8')); writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({job:{status:'RUNNING',sessionId:input.turn.sessionId,threadId:'thread-running',runId:'run-running',result:{assistantText:'still running',output:{status:'RUNNING',sessionId:input.turn.sessionId,runId:'run-running'}}}})); }
+`);
+  try {
+    const result = runtime(["run", "--workspace", workspace, "--task-file", task, "--validation-file", validation, "--state-dir", state, "--session", "session-running", "--kestrel-bin", kestrel, "--json"]);
+    assert.equal(result.status, 1, result.stderr);
+    assert.equal(existsSync(marker), false);
+    const saved = JSON.parse(readFileSync(join(state, "runs", "session-running", "manifest.json"), "utf8"));
+    assert.equal(saved.lifecycle, "RUNNING");
+    assert.equal(saved.integration.validationStatus, undefined);
+  } finally { rmSync(fixture, { recursive:true, force:true }); }
+});
+
+test("run stops outer validation at the first failure and retains the isolated candidate", () => {
+  const fixture = temp("validation-failure"), workspace = repository(fixture), worktree = join(fixture, "managed"), state = join(fixture, "state"), task = join(fixture, "task.md"), validation = join(fixture, "validation.json"), secondMarker = join(worktree, "second-command-ran.txt");
+  run("git", ["-C", workspace, "worktree", "add", "-q", "--detach", worktree]);
+  writeFileSync(join(worktree, "result.txt"), "candidate\n", "utf8");
+  const sourceRevision = run("git", ["-C", workspace, "rev-parse", "HEAD"]).stdout.trim();
+  writeFileSync(task, "Deliver the candidate.\n", "utf8");
+  writeJson(validation, [[process.execPath, "-e", "process.exit(7)"], [process.execPath, "-e", `require('fs').writeFileSync(${JSON.stringify(secondMarker)}, 'should-not-run\\n')`]]);
+  const kestrel = executable(fixture, "fake-validation-failure-kestrel", `
+import { readFileSync, writeFileSync } from 'node:fs';
+const args = process.argv.slice(2);
+if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
+if (args.includes('--version')) { process.stdout.write('kestrel 1.2.3'); process.exit(0); }
+if (args[0] === 'job' && args[1] === 'preflight') { writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',capability:'local-core.execution-profile-resolution.v2',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[],executionProfileBinding:{version:'job_execution_profile_binding_v1',authoringProfileId:'kestrel',environmentPresetId:'cli_dev_local',resolvedProfileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),policy:{id:'kestrel',version:1},approvalPolicyPack:{id:'dev',version:1,digest:'b'.repeat(64)}}})); process.exit(0); }
+if (args[0] === 'runtime' && args[1] === 'replay') { process.stdout.write(JSON.stringify({events:[{runId:'run-failure',sessionId:'session-failure',type:'managed_worktree.promotion_candidate',metadata:{worktreeRoot:${JSON.stringify(worktree)},sourceWorkspaceRoot:${JSON.stringify(workspace)},baseHead:${JSON.stringify(sourceRevision)},scope:{kind:'sessionId',value:'session-failure'},changedFiles:['result.txt'],candidateFingerprint:'candidate-failure',promotionId:'promotion-failure'}}]})); process.exit(0); }
+if (args[0] === 'job') { const input=JSON.parse(readFileSync(args[args.indexOf('--json-in')+1],'utf8')); writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({job:{status:'COMPLETED',sessionId:input.turn.sessionId,threadId:'thread-failure',runId:'run-failure',replay:{runId:'run-failure'},result:{assistantText:'done',output:{status:'COMPLETED',sessionId:input.turn.sessionId,runId:'run-failure'}}}})); }
+`);
+  try {
+    const result = runtime(["run", "--workspace", workspace, "--task-file", task, "--validation-file", validation, "--state-dir", state, "--session", "session-failure", "--kestrel-bin", kestrel, "--json"]);
+    assert.equal(result.status, 1, result.stderr);
+    const runDir = join(state, "runs", "session-failure"), saved = JSON.parse(readFileSync(join(runDir, "manifest.json"), "utf8"));
+    assert.equal(saved.lifecycle, "COMPLETED_ISOLATED");
+    assert.equal(saved.validation.length, 1);
+    assert.equal(saved.validation[0].status, 7);
+    assert.equal(saved.integration.status, "NOT_STARTED");
+    assert.equal(existsSync(secondMarker), false);
+    assert.equal(existsSync(join(workspace, "result.txt")), false);
+    assert.equal(existsSync(worktree), true);
+  } finally { rmSync(fixture, { recursive:true, force:true }); }
+});
+
+test("assign does not reuse a run when the validation contract changes", () => {
+  const fixture = temp("reuse-contract"), workspace = repository(fixture), state = join(fixture, "state"), task = join(fixture, "task.md"), validationOne = join(fixture, "validation-one.json"), validationTwo = join(fixture, "validation-two.json");
+  writeFileSync(task, "Implement the same task.\n", "utf8");
+  writeJson(validationOne, [[process.execPath, "-e", "process.exit(0)"]]);
+  writeJson(validationTwo, [[process.execPath, "-e", "process.exit(0)"], [process.execPath, "-e", "process.exit(0)"]]);
+  const kestrel = executable(fixture, "fake-reuse-kestrel", `
+import { readFileSync, writeFileSync } from 'node:fs';
+const args = process.argv.slice(2);
+if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
+if (args.includes('--version')) { process.stdout.write('kestrel 1.2.3'); process.exit(0); }
+if (args[0] === 'job' && args[1] === 'preflight') { writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',capability:'local-core.execution-profile-resolution.v2',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[],executionProfileBinding:{version:'job_execution_profile_binding_v1',authoringProfileId:'kestrel',environmentPresetId:'cli_dev_local',resolvedProfileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),policy:{id:'kestrel',version:1},approvalPolicyPack:{id:'dev',version:1,digest:'b'.repeat(64)}}})); process.exit(0); }
+if (args[0] === 'job') { const input=JSON.parse(readFileSync(args[args.indexOf('--json-in')+1],'utf8')); writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({job:{status:'COMPLETED',sessionId:input.turn.sessionId,threadId:'thread-reuse',runId:input.turn.sessionId,replay:{runId:input.turn.sessionId},result:{assistantText:'done',output:{status:'COMPLETED',sessionId:input.turn.sessionId,runId:input.turn.sessionId}}}})); }
+`);
+  try {
+    const first = runtime(["assign", "--workspace", workspace, "--task", "Implement the same task.", "--validation-file", validationOne, "--state-dir", state, "--session", "session-one", "--kestrel-bin", kestrel, "--json"]);
+    const second = runtime(["assign", "--workspace", workspace, "--task", "Implement the same task.", "--validation-file", validationTwo, "--state-dir", state, "--session", "session-two", "--kestrel-bin", kestrel, "--json"]);
+    assert.equal(first.status, 0, first.stderr);
+    assert.equal(second.status, 0, second.stderr);
+    assert.deepEqual(readdirSync(join(state, "runs")).sort(), ["session-one", "session-two"]);
+    assert.deepEqual(JSON.parse(readFileSync(join(state, "runs", "session-two", "manifest.json"), "utf8")).validationCommands, JSON.parse(readFileSync(validationTwo, "utf8")));
+  } finally { rmSync(fixture, { recursive:true, force:true }); }
+});
+
 test("doctor and assignment propagate one authoritative state directory", () => {
   const fixture = temp("state-contract"), workspace = repository(fixture), state = join(fixture, "state"), task = join(fixture, "task.md");
   writeFileSync(task, "Use the configured runtime.\n", "utf8");
@@ -139,7 +219,7 @@ const args = process.argv.slice(2);
 if (args.includes('--help')) { process.stdout.write('status workspace job setup runtime'); process.exit(0); }
 if (args.includes('--version')) { process.stdout.write('kestrel 9.9.9'); process.exit(0); }
 if (args[0] === 'core') process.exit(0);
-if (args[0] === 'job' && args[1] === 'preflight') { writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'fixture',approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[]})); process.exit(0); }
+if (args[0] === 'job' && args[1] === 'preflight') { writeFileSync(args[args.indexOf('--json-out')+1],JSON.stringify({version:'job_preflight_v1',capability:'local-core.execution-profile-resolution.v2',status:'ready',requestedPresetId:'cli_dev_local',resolvedPresetId:'cli_dev_local',profileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),approvalPolicyPackId:'dev',policyRevision:'cli_dev_local:v1',effectiveTools:['exec_command'],requiredTools:['exec_command'],missingTools:[],executionProfileBinding:{version:'job_execution_profile_binding_v1',authoringProfileId:'kestrel',environmentPresetId:'cli_dev_local',resolvedProfileId:'kestrel:cli_dev_local:fixture',profileFingerprint:'a'.repeat(64),policy:{id:'kestrel',version:1},approvalPolicyPack:{id:'dev',version:1,digest:'b'.repeat(64)}}})); process.exit(0); }
 if (args[0] === 'job') {
   writeFileSync(process.env.RUNTIME_CAPTURE, JSON.stringify({ args, env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key.startsWith('KESTREL_'))) }));
   const input = JSON.parse(readFileSync(args[args.indexOf('--json-in') + 1], 'utf8'));
