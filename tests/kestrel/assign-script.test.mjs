@@ -163,7 +163,7 @@ function fakeKestrelSource() {
   return `#!/usr/bin/env node
 import { readFileSync, writeFileSync } from "node:fs";
 const args = process.argv.slice(2);
-if (args.includes("--help")) { process.stdout.write("status workspace job setup runtime"); process.exit(0); }
+if (args.includes("--help")) { process.stdout.write("status workspace job setup runtime --event-type"); process.exit(0); }
 if (args.includes("--version")) { process.stdout.write("kestrel 1.2.3"); process.exit(0); }
 if (args[0] === "status") { process.stdout.write("Kestrel Local Core: healthy"); process.exit(0); }
 const inputPath = args[args.indexOf("--json-in") + 1];
