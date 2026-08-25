@@ -1,6 +1,7 @@
 ---
 name: integrate
 description: Verify and integrate a completed isolated Kestrel result into the current local branch while preserving unrelated changes. Use only when the user explicitly invokes /kestrel:integrate for a completed run.
+license: MIT
 disable-model-invocation: true
 ---
 

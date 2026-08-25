@@ -1,6 +1,7 @@
 ---
 name: blast-radius
 description: Analyze the direct and indirect impact of one proposed software change across files, packages, interfaces, state, configuration, environment variables, runtime services, events, tests, deployments, and protected surfaces. Use before an agent or engineer executes a consequential refactor, migration, integration, or multi-file change and needs grounded readiness evidence or a minimal task context pack.
+license: MIT
 ---
 
 # Blast Radius

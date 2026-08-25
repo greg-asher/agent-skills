@@ -1,6 +1,7 @@
 ---
 name: change-design
 description: Design an enhancement, integration, migration, modernization, or structural change in an existing application through focused code and runtime investigation, current external research, alternative comparison, and targeted prototypes. Use when the user explicitly invokes /change-design for a code-aware design of a proposed change.
+license: MIT
 disable-model-invocation: true
 ---
 

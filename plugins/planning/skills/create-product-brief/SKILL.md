@@ -1,6 +1,7 @@
 ---
 name: create-product-brief
 description: Turn settled product discovery and solution or change design into one canonical Product Brief covering the product narrative and Business and Process, Technology, and People requirements. Use when the user explicitly invokes /create-product-brief after discovery and design are complete and before implementation issues are created.
+license: MIT
 disable-model-invocation: true
 ---
 

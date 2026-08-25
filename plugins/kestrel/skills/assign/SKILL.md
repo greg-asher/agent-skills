@@ -1,6 +1,7 @@
 ---
 name: assign
 description: Assign a bounded repository task to Kestrel for autonomous implementation and validation in a managed worktree. Use when the user explicitly invokes /kestrel:assign with an issue, task, or implementation outcome they want Kestrel to complete.
+license: MIT
 disable-model-invocation: true
 ---
 

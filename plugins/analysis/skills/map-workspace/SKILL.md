@@ -1,6 +1,7 @@
 ---
 name: map-workspace
 description: Build or refresh a revision-scoped, evidence-linked model of an unfamiliar software workspace, including boundaries, components, interfaces, dependencies, runtime services, configuration, state, tests, and material unknowns. Use before agentic changes, architectural analysis, technical teaching, or blast-radius assessment when the workspace lacks a current trusted map.
+license: MIT
 ---
 
 # Map Workspace

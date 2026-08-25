@@ -1,6 +1,7 @@
 ---
 name: start-design
 description: Turn a settled greenfield product discovery into a coherent new solution design through research, alternative exploration, modeling, targeted prototypes, and an adaptive design conversation. Use for new applications with no existing codebase when the user explicitly invokes /start-design.
+license: MIT
 disable-model-invocation: true
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: goal-mode
 description: Drive an approved dependency-aware issue plan to a verified end state by alternating the packaged work-on-issues and review-work workflows, preserving a compact surface ledger, and stopping only when all in-scope work is Done or genuinely blocked. Use when the user explicitly invokes /execution:goal-mode, normally inside /goal, for long-running implementation work with settled issues and testable completion criteria.
+license: MIT
 disable-model-invocation: true
 ---
 

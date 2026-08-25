@@ -1,6 +1,7 @@
 ---
 name: cleanup
 description: Safely remove a completed or explicitly discarded Kestrel managed worktree while retaining durable evidence by default. Use only when the user explicitly invokes /kestrel:cleanup for an identified or recent run.
+license: MIT
 disable-model-invocation: true
 ---
 

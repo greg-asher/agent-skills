@@ -1,6 +1,7 @@
 ---
 name: setup
 description: Install, configure, upgrade, verify, or repair the Kestrel CLI and Local Core. Use only when the user explicitly invokes /kestrel:setup or explicitly approves setup after another Kestrel skill reports that Kestrel is unavailable or incompatible.
+license: MIT
 disable-model-invocation: true
 ---
 

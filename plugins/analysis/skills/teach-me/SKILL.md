@@ -1,6 +1,7 @@
 ---
 name: teach-me
 description: Teach a software workspace through an adaptive, evidence-grounded lesson path based on project depth, architecture, the user's goal, recent work, and workspace-scoped learner history. Use for technical onboarding, subsystem understanding, change preparation, remediation after Game Show, or direct inspection and correction of inaccurate learner signals.
+license: MIT
 ---
 
 # Teach Me

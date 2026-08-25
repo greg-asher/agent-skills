@@ -1,6 +1,7 @@
 ---
 name: start-discovery
 description: Guide a research-augmented, conversational discovery of a greenfield software product, beginning with a quiet investigation of meaningful local documents, designs, data, or software when present. Use for new application ideas, artifact-led product discovery, or resuming a living discovery notebook when the user explicitly invokes /start-discovery.
+license: MIT
 disable-model-invocation: true
 ---
 

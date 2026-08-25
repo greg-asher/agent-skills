@@ -1,6 +1,7 @@
 ---
 name: work-on-issues
 description: Select and implement one coherent ready wave from a dependency-aware issue graph through coordinated implementation agents, then update the graph and create one local integration commit. Use when the user explicitly invokes /work-on-issues after implementation issues exist.
+license: MIT
 disable-model-invocation: true
 ---
 

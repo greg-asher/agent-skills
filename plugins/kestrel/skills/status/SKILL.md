@@ -1,6 +1,7 @@
 ---
 name: status
 description: Inspect and explain an active, recent, or identified Kestrel lifecycle run from durable state and runtime evidence. Use only when the user explicitly invokes /kestrel:status to check installation readiness, progress, waiting work, failure, integration, or cleanup state.
+license: MIT
 disable-model-invocation: true
 ---
 
