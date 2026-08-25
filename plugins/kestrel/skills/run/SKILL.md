@@ -1,6 +1,7 @@
 ---
 name: run
 description: Autonomously deliver one bounded repository task through Kestrel assignment, monitoring, local integration, validation, and safe managed-worktree cleanup. Use only when the user explicitly invokes /kestrel:run and wants an end-to-end local result.
+license: MIT
 disable-model-invocation: true
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: reclaim-storage
 description: Safely reclaim reviewed disk usage from coding-agent caches, stale Git worktrees, node_modules, package-manager caches, and build artifacts. Use only when the user explicitly invokes /utilities:reclaim-storage or asks this plugin to perform cleanup after reviewing targets.
+license: MIT
 disable-model-invocation: true
 ---
 

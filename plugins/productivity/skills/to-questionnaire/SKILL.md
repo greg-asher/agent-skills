@@ -1,6 +1,7 @@
 ---
 name: to-questionnaire
 description: Turn missing knowledge or authority into a focused Markdown questionnaire for the person who holds it. Use when the user explicitly invokes /to-questionnaire to collect facts, constraints, preferences, or approvals without inventing the answers.
+license: MIT
 disable-model-invocation: true
 ---
 

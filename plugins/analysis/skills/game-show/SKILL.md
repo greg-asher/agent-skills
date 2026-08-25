@@ -1,6 +1,7 @@
 ---
 name: game-show
 description: Host a live, adaptive repository trivia game that asks one grounded question at a time, evaluates the answer, explains the evidence, adjusts difficulty, and records workspace-scoped learning signals for Teach Me. Use at any time to test project understanding, with optional free-form instructions about topic, subsystem, recent work, difficulty, tone, or round length.
+license: MIT
 ---
 
 # Game Show

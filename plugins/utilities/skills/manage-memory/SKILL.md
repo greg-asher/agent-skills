@@ -1,6 +1,7 @@
 ---
 name: manage-memory
 description: Diagnose and reduce RAM or swap pressure from Codex, Claude Code, Kestrel, development servers, containers, and repository tooling without disrupting active work. Use when the user explicitly invokes /utilities:manage-memory or asks this plugin to investigate process memory.
+license: MIT
 disable-model-invocation: true
 ---
 

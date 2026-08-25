@@ -1,6 +1,7 @@
 ---
 name: audit-storage
 description: Inventory and explain disk usage from Codex, Claude Code, Kestrel, Git worktrees, repositories, node_modules, package-manager caches, and build artifacts without deleting anything. Use when the user explicitly invokes /utilities:audit-storage or asks this plugin for a disk or memory cleanup assessment.
+license: MIT
 disable-model-invocation: true
 ---
 

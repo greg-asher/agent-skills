@@ -1,6 +1,7 @@
 ---
 name: create-issues
 description: Turn a delivery-ready Product Brief into a small dependency-aware set of standalone, agent-ready implementation issues. Use when the user explicitly invokes /create-issues after the canonical Product Brief is ready and wants durable issue files or an implementation queue.
+license: MIT
 disable-model-invocation: true
 ---
 

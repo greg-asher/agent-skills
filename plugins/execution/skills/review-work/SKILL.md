@@ -1,6 +1,7 @@
 ---
 name: review-work
 description: Independently review an implemented issue wave against its intended behavior and actual change, find ordinary and low-frequency defects, update issue dependencies, and gate completion. Use when the user explicitly invokes /review-work after /work-on-issues has marked issues Implemented.
+license: MIT
 disable-model-invocation: true
 ---
 

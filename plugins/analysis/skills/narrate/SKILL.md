@@ -1,6 +1,7 @@
 ---
 name: narrate
 description: Turn the latest completed agent work run in the current thread into a short, engaging, easy-to-read narrative that explains the objective, turning points, decisions, changes, validation, failures, and remaining work. Use immediately after a large or long-running turn, goal, or multi-agent run when the user wants to catch up without rereading the transcript or tool log.
+license: MIT
 ---
 
 # Narrate

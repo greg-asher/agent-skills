@@ -1,6 +1,7 @@
 ---
 name: recover
 description: Diagnose and safely continue a failed, waiting, or interrupted Kestrel run without duplicating live work. Use only when the user explicitly invokes /kestrel:recover and names or implies a Kestrel run needing recovery.
+license: MIT
 disable-model-invocation: true
 ---
 

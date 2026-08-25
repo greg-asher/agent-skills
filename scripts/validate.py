@@ -65,8 +65,16 @@ def validate_skill(skill_dir: Path, require_claude_manual_invocation: bool = Tru
     metadata = frontmatter(skill_file)
     if metadata.get("name") != skill_dir.name:
         fail(f"Skill name does not match directory: {skill_dir.relative_to(ROOT)}")
-    if not metadata.get("description"):
+    description = metadata.get("description", "")
+    if not description:
         fail(f"Missing skill description: {skill_file.relative_to(ROOT)}")
+    if len(description) > 512:
+        fail(
+            "Skill description exceeds the repository's 512-character "
+            f"strict-scan limit: {skill_file.relative_to(ROOT)}"
+        )
+    if metadata.get("license") != "MIT":
+        fail(f"Skill license must be MIT: {skill_file.relative_to(ROOT)}")
     if (
         require_claude_manual_invocation
         and metadata.get("disable-model-invocation") != "true"

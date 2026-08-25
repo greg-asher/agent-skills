@@ -1,6 +1,7 @@
 ---
 name: guided-operator
 description: Prepare a safe, resumable runbook for a multi-stage operation that requires human authority or action. Use when the user explicitly invokes /execution:guided-operator for credentials, dashboards, protected promotions, deployments, migrations, cutovers, or physical or visual verification.
+license: MIT
 disable-model-invocation: true
 ---
 

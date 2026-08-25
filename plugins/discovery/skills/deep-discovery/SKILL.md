@@ -1,6 +1,7 @@
 ---
 name: deep-discovery
-description: Deeply investigate whatever already exists in a folder—software, documents, designs, data, or a mixture—using coordinated source investigators, workflow tracing, source reconciliation, an evidence-linked knowledge base, and adaptive reports, visuals, onboarding, and briefing assets. Use for application discovery, document-corpus analysis, technical onboarding, inherited systems, MVP handoffs, architecture reconstruction, mixed intent-versus-implementation reviews, or requests to understand an unfamiliar body of product or system material.
+description: Deeply investigate an existing folder—software, documents, designs, data, or a mixture—using coordinated source investigation, workflow tracing, source reconciliation, an evidence-linked knowledge base, and adaptive reports, visuals, onboarding, and briefing assets. Use for application or document-corpus discovery, technical onboarding, inherited systems, MVP handoffs, architecture reconstruction, intent-versus-implementation reviews, or requests to explain unfamiliar product or system material.
+license: MIT
 disable-model-invocation: true
 ---
 
