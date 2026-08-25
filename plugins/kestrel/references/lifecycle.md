@@ -12,6 +12,8 @@ Executable selection is deterministic: explicit `--kestrel-bin`, then a compatib
 
 Lifecycle states are `RUNNING`, `WAITING`, `FAILED`, `INTERRUPTED`, `SETUP_FAILED`, `COMPLETED_ISOLATED`, `INTEGRATED`, and `CLEANED`. Durable evidence lives under `runs/<session>/` as `manifest.json`, `input.json`, `task.json`, `output.json`, optional `daemon-error.txt`, and any doctor evidence. A structured `job_run_rejection_v1` is retained as a durable `COMPATIBILITY_ERROR`. Manifests record the state directory, source revision, binding evidence, failure phase/class, recovery command, worktree creation status, and cleanup safety.
 
+Keep terminal waiting quiet and bound to the original process. Let the foreground wrapper block. If the host yields a live process handle, wait on that exact handle with the longest wait interval supported by the host. Do not call `kestrel-plugin status` while that handle remains live. Do not inspect logs, manifests, Git state, replay, or bundle evidence only to prove liveness. Do not narrate unchanged progress beyond any liveness update the host requires. Read durable output once after the process exits. Use status or recovery only when the handle is lost, the process exits without durable output, or an explicit terminal failure requires diagnosis.
+
 Exit code 0 means the requested operation completed, 2 means approval or operator input is required, 3 means installation or platform setup is required, and 4 means incompatible Kestrel or binding evidence. Never report a terminal outcome from process existence alone.
 
 No lifecycle command authorizes pushing, pull requests, remote merges, deployments, production changes, or deletion of durable evidence.

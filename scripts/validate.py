@@ -277,6 +277,24 @@ def validate_analysis_contracts() -> None:
         fail("Analysis learner model is missing optional learning-goal fields")
 
 
+def validate_kestrel_wait_contracts() -> None:
+    kestrel = ROOT / "plugins" / "kestrel"
+    lifecycle = (kestrel / "references" / "lifecycle.md").read_text()
+    for phrase in (
+        "wait on that exact handle with the longest wait interval supported by the host",
+        "Do not call `kestrel-plugin status` while that handle remains live.",
+        "Do not inspect logs, manifests, Git state, replay, or bundle evidence only to prove liveness.",
+        "Read durable output once after the process exits.",
+    ):
+        if phrase not in lifecycle:
+            fail(f"Kestrel quiet terminal-wait contract is missing: {phrase}")
+
+    for skill_name in ("assign", "run"):
+        skill = (kestrel / "skills" / skill_name / "SKILL.md").read_text()
+        if "Follow the shared quiet terminal-wait contract" not in skill:
+            fail(f"Kestrel {skill_name} does not require quiet terminal waiting")
+
+
 def validate_supporting_contracts() -> None:
     domain_paths = [
         ROOT / "plugins" / plugin / "references" / "domain-modeling.md"
@@ -416,6 +434,7 @@ def main() -> None:
 
     validate_discovery_contracts()
     validate_analysis_contracts()
+    validate_kestrel_wait_contracts()
     validate_supporting_contracts()
 
     source_model = read_json(
