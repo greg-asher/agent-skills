@@ -61,7 +61,7 @@ Before it creates an assignment, the wrapper requires Kestrel 0.8.8 or newer and
 - host `exec_command` for repository implementation; never sandbox `code.execute`
 - any validation argument arrays rendered exactly into the assignment
 
-Let the command reach a terminal result. If the shell moves a long-running process into the background, continue monitoring that process instead of starting another assignment.
+Follow the shared quiet terminal-wait contract. Let this command reach a terminal result without polling status or starting another assignment.
 
 ## 3. Report the result
 
