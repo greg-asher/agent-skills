@@ -20,7 +20,7 @@ The `Ready` section is the current dependency-free frontier. Recompute it whenev
 
 ## Graph changes
 
-Implementation and review can clarify, split, combine, add, and rewire issues when the work reveals a more accurate graph. Preserve the original outcome, done conditions, and settled design commitments. Do not weaken an issue to declare success.
+Implementation and review can clarify, split, combine, add, and rewire issues when the work reveals a more accurate graph. Combine findings when satisfying the active outcome requires the same repair. Add repair issues only for unmet acceptance conditions, required validation failures, settled-constraint violations, or regressions caused by the current change. Report pre-existing or unrelated non-blocking defects without adding them to the active graph. Preserve the original outcome, done conditions, and settled design commitments. Do not weaken an issue to declare success.
 
 Add only genuine prerequisites. A dependency means the downstream issue cannot be completed correctly against the current system or a stable contract. Coordination preference and file contention do not create product dependencies.
 

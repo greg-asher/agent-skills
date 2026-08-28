@@ -25,7 +25,7 @@ If the authoritative graph cannot be read or updated, stop before review state c
 
 ## 2. Build a change-specific risk view
 
-Identify the failures this change can introduce. Base the risk view on changed behavior and affected boundaries, not a fixed checklist. Include ordinary correctness, integration, regression, and test risks. Add low-frequency concerns only when the change introduces them.
+Identify the failures this change can introduce. Base the risk view on changed behavior and affected boundaries, not a fixed checklist. Include ordinary correctness, integration, regression, and test risks. Add low-frequency concerns only when the change introduces them. Trace each relevant workflow from its trigger through the affected components to its observable result.
 
 ## 3. Run independent reviews
 
@@ -40,11 +40,11 @@ The reviewers are read-only. Do not modify product code during review.
 
 ## 4. Reconcile and file defects
 
-Reconcile all reviewer results before editing the issue graph. Trace or reproduce a reported failure before treating it as a defect. A complete static trace is enough when runtime reproduction is impractical, but it must connect a permitted input or state to an observable failure. Do not assume an input, caller, deployment state, or contract that the code and issue context do not establish. Exclude style preferences, speculative concerns, and requests that change settled outcomes or design.
+Reconcile all reviewer results before editing the issue graph. Trace or reproduce a reported failure before treating it as a defect. Establish the complete affected flow from the permitted trigger through each implicated component to the observable failure. A complete static trace is enough when runtime reproduction is impractical, but it must establish every link. Do not assume an input, caller, deployment state, or contract that the code and issue context do not establish. Exclude style preferences, speculative concerns, and requests that change settled outcomes or design.
 
-Create one coherent repair issue for each confirmed, taskable defect. Use [the defect issue template](assets/defect-issue-template.md). Record the failed behavior, trigger, affected issue and code path, relevant constraints, observable completion conditions, and genuine dependencies. State the guarantee the repair must restore. Do not prescribe the implementation unless the settled design already does.
+Combine findings when restoring the intended behavior requires the same repair. Create one coherent repair issue for each distinct taskable repair needed to satisfy an acceptance condition, required validation, settled constraint, or regression caused by the reviewed change. Use [the defect issue template](assets/defect-issue-template.md). Record the failed behavior, trigger, complete affected flow, components that must change, relevant constraints, observable completion conditions, and genuine dependencies. State the guarantee the repair must restore. Do not prescribe the implementation unless the settled design already does.
 
-A blocking defect keeps the affected implementation issue `Implemented` and adds the repair issue as its blocker. A non-blocking defect becomes an independent `Ready` issue and does not hold an already completed outcome. If the defect exposes an invalid product outcome or design commitment, mark the affected work `Blocked` and route it back to Planning or Design.
+A blocking defect keeps the affected implementation issue `Implemented` and adds the repair issue as its blocker. A non-blocking regression caused by the reviewed change becomes an independent `Ready` issue and does not hold an already completed outcome. Report a confirmed pre-existing or unrelated non-blocking defect in the final synthesis only; do not add it to the active issue graph. If the defect exposes an invalid product outcome or design commitment, mark the affected work `Blocked` and route it back to Planning or Design.
 
 ## 5. Gate completion
 

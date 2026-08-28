@@ -35,10 +35,34 @@
     },
     {
       "id": 5,
-      "prompt": "Use /review-work on the implemented reporting wave. The fixture includes one real follow-up defect that does not prevent the promised outcome.",
-      "expected_output": "Claude confirms the administrator-only timestamp display defect and files it as an independent Ready repair issue. Because the seller reporting outcome and its constraints still hold, the defect does not block EX-1001 from moving to Done. Claude recomputes the frontier and commits the local review-state and new issue separately from the implementation commit.",
+      "prompt": "Use /review-work on the implemented reporting wave. The fixture includes one pre-existing defect outside the promised outcome.",
+      "expected_output": "Claude confirms the administrator-only timestamp defect but recognizes that it predates the wave, is unrelated to the seller outcome, and was not caused by the reviewed change. It reports the defect in the review synthesis without creating an issue or adding it to the active graph. EX-1001 moves to Done, and only the local issue-state change is committed.",
       "files": [
         "scenarios/nonblocking-defect.md"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Use /review-work on this reporting wave whose shared helper caused a non-blocking regression outside the primary seller journey.",
+      "expected_output": "Claude traces the shared helper change to the administrator display regression and recognizes that the reviewed wave caused it. The regression becomes one independent Ready repair issue, while EX-1101 can move to Done because the seller outcome still holds. Claude does not dismiss the regression merely because it is outside the primary journey.",
+      "files": [
+        "scenarios/caused-regression.md"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Use /review-work on the resumed-export wave and reconcile the reviewers' component-level findings.",
+      "expected_output": "Claude traces the complete resume flow from producer through DTO and persistence to the download consumer. It recognizes that all three symptoms share one stable-identity guarantee and creates one blocking repair issue covering every component that must change, rather than separate local issues. EX-1201 remains Implemented behind that repair.",
+      "files": [
+        "scenarios/shared-flow-defects.md"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Use /review-work on this local DTO repair whose focused tests pass.",
+      "expected_output": "Claude does not accept the DTO guard as a complete repair. It traces the permitted resume event through producer, DTO, persistence, and consumer, confirms that the promised completion still times out, and creates one blocking repair for the complete affected flow rather than another isolated guard issue.",
+      "files": [
+        "scenarios/partial-flow-repair.md"
       ]
     }
   ]

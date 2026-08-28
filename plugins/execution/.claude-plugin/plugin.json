@@ -1,5 +1,6 @@
 {
   "name": "execution",
+  "version": "0.1.0",
   "description": "Drive dependency-aware issue plans to verified completion through coordinated implementation, independent review, convergent goals, and safe human-operation runbooks.",
   "author": {
     "name": "Greg Asher",

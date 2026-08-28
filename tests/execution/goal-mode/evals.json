@@ -48,6 +48,14 @@
       "files": [
         "scenarios/conversation-repair.md"
       ]
+    },
+    {
+      "id": 7,
+      "prompt": "Use /execution:goal-mode to reconcile these review findings and continue the repair loop.",
+      "expected_output": "Claude traces the complete resumed-export flow and recognizes the component-level findings as one violated stable-artifact guarantee. It creates one coherent repair issue covering every component that must change, then returns that repair to work-on-issues as one wave. It does not create successive producer, DTO, persistence, and consumer repair issues as each local symptom appears.",
+      "files": [
+        "scenarios/coherent-repair.md"
+      ]
     }
   ]
 }

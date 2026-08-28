@@ -31,6 +31,8 @@ Choose issues that can be implemented and reviewed together. Consider dependency
 
 Move selected issues to `In progress` before delegation.
 
+For a repair issue, inspect the complete affected flow before delegation. Keep every component required to restore the intended behavior in one coherent wave. Sequence overlapping assignments when needed, but do not split the repair merely by file or component boundary.
+
 ## 3. Delegate bounded assignments
 
 Invoke one or more `execution:issue-worker` agents. Give each worker:
@@ -41,6 +43,8 @@ Invoke one or more `execution:issue-worker` agents. Give each worker:
 - integration expectations and overlap constraints
 - repository instructions and the checks it must run
 
+If an assignment omits a component required to restore the complete flow, the worker must stop that part and report the incomplete boundary instead of applying a local patch.
+
 Use concurrent workers only when their assignments are merge-safe and ownership is disjoint. Sequence work that touches the same contracts, state, migrations, generated artifacts, or files.
 
 Workers implement and test their assignments. They must not edit the issue graph, commit, push, open a pull request, or spawn more agents.
@@ -49,7 +53,7 @@ Workers implement and test their assignments. They must not edit the issue graph
 
 Inspect every worker result and working-tree change. Resolve cross-issue seams in the main session. Run the repository checks and the wave-level scenarios needed to establish that the combined behavior works.
 
-Apply implementation findings to the authoritative graph. Clarify, split, combine, add, or rewire issues only when the code reveals a more accurate delivery shape. Preserve the settled product outcome and design commitments. If implementation invalidates either, mark the affected work `Blocked` and route the decision back to Planning or Design.
+Apply implementation findings to the authoritative graph. Update an existing repair issue when a finding belongs to its affected flow. Clarify, split, combine, add, or rewire issues only when the code reveals a genuinely distinct delivery shape. Preserve the settled product outcome and design commitments. If implementation invalidates either, mark the affected work `Blocked` and route the decision back to Planning or Design.
 
 When every issue's done conditions and wave checks pass, move it to `Implemented` and recompute the `Ready` frontier. Leave failed or unresolved issues `In progress` or `Blocked`, with the reason and genuine dependency recorded.
 

@@ -39,7 +39,7 @@ Repeat this sequence without waiting for another user prompt:
 1. Follow `work-on-issues` for the next coherent ready wave.
 2. Preserve its local integration commit and validation evidence.
 3. Follow `review-work` for every newly Implemented issue and its exact change range.
-4. Reconcile confirmed repair issues into the authoritative graph.
+4. Reconcile confirmed in-scope findings into coherent repair issues in the authoritative graph.
 5. Continue from the recomputed Ready frontier.
 
 Treat the user's invocation of this skill as authorization for local implementation, validation, issue-state updates, and the local commits required by the two packaged workflows. It does not authorize pushing, opening or merging pull requests, deployment, provider changes, customer mutations, destructive actions, or other external effects.
@@ -49,14 +49,14 @@ Treat the user's invocation of this skill as authorization for local implementat
 Accept a review finding only when it:
 
 - identifies an observable failure
-- maps to an unmet acceptance condition, regression, or required validation failure
+- maps to an unmet acceptance condition, regression caused by the current change, settled-constraint violation, or required validation failure
 - cites concrete evidence and the owning surface
 - is not already represented by an open or completed issue
 - defines a testable completion condition
 
 Reject style preferences, speculative hardening, optional refactors, unrelated baseline failures, and changes to settled outcomes or design. Do not reopen a completed issue without new evidence that its completion condition fails.
 
-Resolve defects at the earliest surface where behavior becomes incorrect. Recheck current implementation and tests before carrying forward claims from old plans, issues, or incident history.
+Trace each confirmed defect through the complete affected product flow before choosing the repair. Treat the first incorrect component as evidence, not the repair boundary. Identify every component that must change, repair them coherently, and validate the intended behavior end to end. Do not widen the repair into unrelated hardening. Recheck current implementation and tests before carrying forward claims from old plans, issues, or incident history.
 
 After each cycle, record only:
 
