@@ -40,6 +40,14 @@
       "files": [
         "scenarios/failed-integration-check.md"
       ]
+    },
+    {
+      "id": 6,
+      "prompt": "Use /work-on-issues for REPAIR-601 and implement the confirmed complete-flow repair.",
+      "expected_output": "Claude keeps the producer, DTO, persistence, and consumer changes in one coherent repair wave because they share the stable-identity guarantee. It gives workers the complete affected flow, sequences overlapping contract work, and refuses any assignment that would leave a required component outside the repair. It marks REPAIR-601 Implemented and creates one wave commit only after focused checks, the resume-and-retry complete-flow scenario, and npm test pass.",
+      "files": [
+        "scenarios/complete-flow-repair.md"
+      ]
     }
   ]
 }
