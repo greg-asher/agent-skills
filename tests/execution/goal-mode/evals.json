@@ -28,7 +28,7 @@
     {
       "id": 4,
       "prompt": "Use /execution:goal-mode to assess whether this issue plan is complete.",
-      "expected_output": "Claude does not complete the goal merely because all original implementation issues were touched. It requires every in-scope issue to be Done, current passing evidence for each acceptance criterion, required validation, a final clean review, intact protected surfaces, and no unauthorized external action.",
+      "expected_output": "Claude does not complete the goal merely because all original implementation issues were touched. It requires every in-scope issue to be Done, current passing evidence for each acceptance criterion, required validation, initial review for every original implementation issue, closure review for every admitted repair, intact protected surfaces, and no unauthorized external action.",
       "files": [
         "scenarios/completion-gate.md"
       ]
@@ -55,6 +55,14 @@
       "expected_output": "Claude traces the complete resumed-export flow and recognizes the component-level findings as one violated stable-artifact guarantee. It creates one coherent repair issue covering every component that must change, then returns that repair to work-on-issues as one wave. It does not create successive producer, DTO, persistence, and consumer repair issues as each local symptom appears.",
       "files": [
         "scenarios/coherent-repair.md"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Use /execution:goal-mode to decide whether this repaired plan has converged.",
+      "expected_output": "Claude treats REPAIR-1701 as a closure review rather than restarting broad discovery. It confirms the named guarantee, complete affected flow, done conditions, and required validation, reports the transient operator diagnostic count only in the synthesis, moves the repair and original issue to Done, and completes the goal without creating another Ready issue or launching a new broad final review.",
+      "files": [
+        "scenarios/closure-convergence.md"
       ]
     }
   ]
