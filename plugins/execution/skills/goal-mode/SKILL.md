@@ -46,7 +46,9 @@ Treat the user's invocation of this skill as authorization for local implementat
 
 ## 3. Keep review convergent
 
-Accept a review finding only when it:
+Treat the first review of an original implementation issue as an initial review. Treat review of a repair issue created by Review Work as a closure review. Both reviewers remain mandatory in either posture.
+
+Use the initial review to search the change-specific risk surface broadly. Accept a finding only when it:
 
 - identifies an observable failure
 - maps to an unmet acceptance condition, regression caused by the current change, settled-constraint violation, or required validation failure
@@ -54,7 +56,9 @@ Accept a review finding only when it:
 - is not already represented by an open or completed issue
 - defines a testable completion condition
 
-Reject style preferences, speculative hardening, optional refactors, unrelated baseline failures, and changes to settled outcomes or design. Do not reopen a completed issue without new evidence that its completion condition fails.
+Use a closure review to verify the repair's named guarantee, established affected flow, done conditions, and required validation. Do not restart broad risk discovery. Extend the active graph only when the named repair still fails, required validation fails, a settled constraint within the repair boundary is violated, or the repair materially regresses the established flow or a shared boundary it changed. A material regression changes that flow's observable result, integrity, authorization, durability, or recoverability. Report other concrete observations in the review synthesis without adding them to the active graph, even when they are reachable or caused by the repair.
+
+Reject style preferences, speculative hardening, optional refactors, unrelated baseline failures, low-impact adjacent edge cases found during closure, and changes to settled outcomes or design. Do not reopen a completed issue without new evidence that its completion condition fails.
 
 Trace each confirmed defect through the complete affected product flow before choosing the repair. Treat the first incorrect component as evidence, not the repair boundary. Identify every component that must change, repair them coherently, and validate the intended behavior end to end. Do not widen the repair into unrelated hardening. Recheck current implementation and tests before carrying forward claims from old plans, issues, or incident history.
 
@@ -74,9 +78,13 @@ Complete the goal only when:
 - every in-scope issue is `Done`
 - every acceptance criterion has current passing evidence
 - required validation passes
-- the final review finds no actionable in-scope defect
+- every original implementation issue has passed initial review
+- every admitted repair has passed closure review
+- no blocking finding from either review posture remains
 - protected surfaces remain intact
 - no unauthorized external action occurred
+
+Do not launch a new broad review after the admitted repairs pass closure. The successful closure reviews are the final review evidence for those repairs.
 
 Do not call unrelated baseline failures goal failures. Record them as out of scope unless the implementation caused or exposed them as blockers to an acceptance criterion.
 

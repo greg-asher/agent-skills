@@ -64,6 +64,22 @@
       "files": [
         "scenarios/partial-flow-repair.md"
       ]
+    },
+    {
+      "id": 9,
+      "prompt": "Use /review-work on this implemented repair and decide whether closure may complete despite the adjacent observation.",
+      "expected_output": "Claude recognizes REPAIR-1501 as a closure review, invokes both reviewers against the named stable-artifact guarantee and established resume flow, and confirms that the repair done conditions and required complete-flow validation pass. It reports the transient operator-only diagnostic count as a summary observation because it does not materially change the established flow, and it does not add that observation to the active graph or restart broad discovery. REPAIR-1501 and its unblocked implementation issue can move to Done.",
+      "files": [
+        "scenarios/closure-converges.md"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Use /review-work on this implemented repair whose named resume scenario passes but whose shared persistence change breaks ordinary exports.",
+      "expected_output": "Claude recognizes REPAIR-1601 as a closure review and keeps the review bounded to the named guarantee, established flow, required validation, and the shared persistence boundary changed by the repair. It confirms that the ordinary export download failure is a material regression caused through that boundary, creates one coherent repair issue for it, and does not declare closure merely because the resume scenario passes.",
+      "files": [
+        "scenarios/closure-material-regression.md"
+      ]
     }
   ]
 }
