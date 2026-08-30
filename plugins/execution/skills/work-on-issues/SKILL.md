@@ -31,7 +31,7 @@ Choose issues that can be implemented and reviewed together. Consider dependency
 
 Move selected issues to `In progress` before delegation.
 
-For a repair issue, inspect the complete affected flow before delegation. Keep every component required to restore the intended behavior in one coherent wave. Sequence overlapping assignments when needed, but do not split the repair merely by file or component boundary.
+For a repair issue, inspect the complete affected flow before delegation. Keep every component required to restore the intended behavior in one coherent wave. Map every required component to an assignment and make cross-component contracts and integration order explicit. Components may have bounded owners; the union of assignments must cover the complete repair. Do not split the repair into separate issues merely by file or component boundary.
 
 ## 3. Delegate bounded assignments
 
@@ -39,11 +39,13 @@ Invoke one or more `execution:issue-worker` agents. Give each worker:
 
 - the complete issue text and observable done conditions
 - the relevant Product Brief and design commitments
-- the behavior, seams, and files it owns
+- the complete affected flow, the behavior, seams, and files it owns, and the named owners of other required components
 - integration expectations and overlap constraints
 - repository instructions and the checks it must run
 
-If an assignment omits a component required to restore the complete flow, the worker must stop that part and report the incomplete boundary instead of applying a local patch.
+Before delegation, verify that the assignments collectively cover every component required for the repair. Assign focused checks with their component owners and assign the complete-flow validation to one worker. The lead remains responsible for running that validation after integrating the whole wave.
+
+If a required component has no owner in the wave, a cross-owner seam is unspecified, or an assignment requires an unplanned change inside another worker's ownership, the worker must stop that part and report the incomplete boundary instead of applying a local patch. A bounded assignment is not incomplete merely because another named worker owns other required components.
 
 Use concurrent workers only when their assignments are merge-safe and ownership is disjoint. Sequence work that touches the same contracts, state, migrations, generated artifacts, or files.
 
